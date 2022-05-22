@@ -1,0 +1,100 @@
+# SPDX-FileCopyrightText: 2022 Serokell <https://serokell.io>
+#
+# SPDX-License-Identifier: MPL-2.0
+
+name:                tztime
+version:             0.1.0.0
+github:              serokell/tztime
+license:             MPL-2.0
+license-file:        LICENSE
+author:              Serokell
+maintainer:          Serokell <hi@serokell.io>
+copyright:           2022 Serokell <https://serokell.io>
+
+extra-source-files:
+- README.md
+
+description:         Please see the README on GitHub at <https://github.com/serokell/tztime#readme>
+
+library:
+  source-dirs: src
+  dependencies:
+  - base >= 4.7 && < 5
+
+tests:
+  tztime-test:
+    main:                Main.hs
+    source-dirs:         test
+    build-tools:         tasty-discover:tasty-discover
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - base >= 4.7 && < 5
+    - tasty
+
+ghc-options:
+  - -Weverything
+  - -Wno-implicit-prelude
+  - -Wno-name-shadowing
+  - -Wno-missing-import-lists
+  - -Wno-missing-export-lists
+  - -Wno-unsafe
+  - -Wno-safe
+  - -Wno-missing-safe-haskell-mode
+  - -Wno-prepositive-qualified-module
+  - -Wno-monomorphism-restriction
+  - -Wno-missed-specialisations
+  - -Wno-all-missed-specialisations
+
+default-extensions:
+  - AllowAmbiguousTypes
+  - ApplicativeDo
+  - BangPatterns
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DefaultSignatures
+  - DeriveAnyClass
+  - DeriveDataTypeable
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveTraversable
+  - DerivingStrategies
+  - DerivingVia
+  - EmptyCase
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - ImportQualifiedPost
+  - LambdaCase
+  - MultiParamTypeClasses
+  - MultiWayIf
+  - NamedFieldPuns
+  - NegativeLiterals
+  - NumDecimals
+  - NumericUnderscores
+  - OverloadedLabels
+  - OverloadedStrings
+  - PatternSynonyms
+  - PolyKinds
+  - QuantifiedConstraints
+  - QuasiQuotes
+  - RankNTypes
+  - RecordWildCards
+  - RecursiveDo
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - StrictData
+  - TemplateHaskell
+  - TupleSections
+  - TypeApplications
+  - TypeFamilies
+  - TypeOperators
+  - UndecidableInstances
+  - UndecidableSuperClasses
+  - ViewPatterns
