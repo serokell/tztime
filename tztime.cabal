@@ -23,6 +23,9 @@ source-repository head
   location: https://github.com/serokell/tztime
 
 library
+  exposed-modules:
+      Data.Time.TZTime
+      Data.Time.TZTime.Internal
   other-modules:
       Paths_tztime
   hs-source-dirs:
@@ -80,12 +83,18 @@ library
   ghc-options: -Weverything -Wno-implicit-prelude -Wno-name-shadowing -Wno-missing-import-lists -Wno-missing-export-lists -Wno-unsafe -Wno-safe -Wno-missing-safe-haskell-mode -Wno-prepositive-qualified-module -Wno-monomorphism-restriction -Wno-missed-specialisations -Wno-all-missed-specialisations
   build-depends:
       base >=4.7 && <5
+    , mtl
+    , safe-exceptions
+    , time
+    , time-compat
+    , tz
   default-language: Haskell2010
 
 test-suite tztime-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
+      Test.Data.Time.TZTime
       Tree
       Paths_tztime
   hs-source-dirs:
@@ -146,4 +155,9 @@ test-suite tztime-test
   build-depends:
       base >=4.7 && <5
     , tasty
+    , tasty-hunit-compat
+    , time
+    , time-compat
+    , tz
+    , tztime
   default-language: Haskell2010

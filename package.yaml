@@ -20,6 +20,11 @@ library:
   source-dirs: src
   dependencies:
   - base >= 4.7 && < 5
+  - mtl
+  - safe-exceptions
+  - time
+  - time-compat
+  - tz
 
 tests:
   tztime-test:
@@ -33,6 +38,11 @@ tests:
     dependencies:
     - base >= 4.7 && < 5
     - tasty
+    - tasty-hunit-compat
+    - time
+    - time-compat
+    - tz
+    - tztime
 
 ghc-options:
   - -Weverything
