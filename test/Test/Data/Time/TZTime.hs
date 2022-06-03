@@ -36,8 +36,8 @@ unit_fromLocalTime_at_gaps = do
   let local = LocalTime (YearMonthDay 2022 3 13) (TimeOfDay 2 15 0)
   let tz = TZ.tzByLabel TZ.America__Winnipeg
 
-  TZT.fromLocalTime tz local @?=
-    Gap local
+  TZT.fromLocalTime tz local @?= Left
+    (TZGap local
       (UnsafeTZTime
         (LocalTime (YearMonthDay 2022 3 13) (TimeOfDay 1 15 0))
         tz cst
@@ -46,6 +46,7 @@ unit_fromLocalTime_at_gaps = do
         (LocalTime (YearMonthDay 2022 3 13) (TimeOfDay 3 15 0))
         tz cdt
       )
+    )
 
 test_fromLocalTime_at_odd_gaps :: [TestTree]
 test_fromLocalTime_at_odd_gaps =
@@ -56,8 +57,8 @@ test_fromLocalTime_at_odd_gaps =
       let local = LocalTime (YearMonthDay 2022 10 2) (TimeOfDay 2 7 0)
       let tz = TZ.tzByLabel TZ.Australia__Lord_Howe
 
-      TZT.fromLocalTime tz local @?=
-        Gap local
+      TZT.fromLocalTime tz local @?= Left
+        (TZGap local
           (UnsafeTZTime
             (LocalTime (YearMonthDay 2022 10 2) (TimeOfDay 1 37 0))
             tz
@@ -68,6 +69,7 @@ test_fromLocalTime_at_odd_gaps =
             tz
             (TimeZone (11 * 60) True "+11")
           )
+        )
 
   , testCase "Pacific/Apia" do
       -- On 2011-12-29, at 23:59:59, the island of Samoa switched from UTC-10 to UTC+14.
@@ -78,8 +80,8 @@ test_fromLocalTime_at_odd_gaps =
       let local = LocalTime (YearMonthDay 2011 12 30) (TimeOfDay 10 7 0)
       let tz = TZ.tzByLabel TZ.Pacific__Apia
 
-      TZT.fromLocalTime tz local @?=
-        Gap local
+      TZT.fromLocalTime tz local @?= Left
+        (TZGap local
           (UnsafeTZTime
             (LocalTime (YearMonthDay 2011 12 29) (TimeOfDay 10 7 0))
             tz
@@ -90,6 +92,7 @@ test_fromLocalTime_at_odd_gaps =
             tz
             (TimeZone (14 * 60) True "+14")
           )
+        )
   ]
 
 unit_fromLocalTime_at_overlaps :: Assertion
@@ -106,8 +109,8 @@ unit_fromLocalTime_at_overlaps = do
   let local = LocalTime (YearMonthDay 2022 11 6) (TimeOfDay 1 15 0)
   let tz = TZ.tzByLabel TZ.America__Winnipeg
 
-  TZT.fromLocalTime tz local @?=
-    Overlap local
+  TZT.fromLocalTime tz local @?= Left
+    (TZOverlap local
       (UnsafeTZTime
         (LocalTime (YearMonthDay 2022 11 6) (TimeOfDay 1 15 0))
         tz cdt
@@ -116,6 +119,7 @@ unit_fromLocalTime_at_overlaps = do
         (LocalTime (YearMonthDay 2022 11 6) (TimeOfDay 1 15 0))
         tz cst
       )
+    )
 
 unit_fromLocalTime_at_odd_overlaps :: Assertion
 unit_fromLocalTime_at_odd_overlaps = do
@@ -125,8 +129,8 @@ unit_fromLocalTime_at_odd_overlaps = do
   let local = LocalTime (YearMonthDay 2022 4 3) (TimeOfDay 1 45 0)
   let tz = TZ.tzByLabel TZ.Australia__Lord_Howe
 
-  TZT.fromLocalTime tz local @?=
-    Overlap local
+  TZT.fromLocalTime tz local @?= Left
+    (TZOverlap local
       (UnsafeTZTime
         (LocalTime (YearMonthDay 2022 4 3) (TimeOfDay 1 45 0))
         tz
@@ -137,6 +141,7 @@ unit_fromLocalTime_at_odd_overlaps = do
         tz
         (TimeZone (10 * 60 + 30) False "+1030")
       )
+    )
 
 unit_atStartOfDay_at_gaps :: Assertion
 unit_atStartOfDay_at_gaps = do
@@ -257,12 +262,12 @@ unit_addCalendar_zero_equals_id = do
 
   check $ unsafeFromLocalTime tz (mkLocalTime 0 0 0)
   check $ unsafeFromLocalTime tz (mkLocalTime 2 0 0)
-  check $ fromLocalTime tz (mkLocalTime 1 0 0) & \(Overlap _ earliest _) -> earliest
-  check $ fromLocalTime tz (mkLocalTime 1 0 0) & \(Overlap _ _ latest) -> latest
-  check $ fromLocalTime tz (mkLocalTime 1 30 0) & \(Overlap _ earliest _) -> earliest
-  check $ fromLocalTime tz (mkLocalTime 1 30 0) & \(Overlap _ _ latest) -> latest
-  check $ fromLocalTime tz (mkLocalTime 1 59 0) & \(Overlap _ earliest _) -> earliest
-  check $ fromLocalTime tz (mkLocalTime 1 59 0) & \(Overlap _ _ latest) -> latest
+  check $ fromLocalTime tz (mkLocalTime 1 0 0) & \(Left (TZOverlap _ earliest _)) -> earliest
+  check $ fromLocalTime tz (mkLocalTime 1 0 0) & \(Left (TZOverlap _ _ latest)) -> latest
+  check $ fromLocalTime tz (mkLocalTime 1 30 0) & \(Left (TZOverlap _ earliest _)) -> earliest
+  check $ fromLocalTime tz (mkLocalTime 1 30 0) & \(Left (TZOverlap _ _ latest)) -> latest
+  check $ fromLocalTime tz (mkLocalTime 1 59 0) & \(Left (TZOverlap _ earliest _)) -> earliest
+  check $ fromLocalTime tz (mkLocalTime 1 59 0) & \(Left (TZOverlap _ _ latest)) -> latest
 
   where
     check :: TZTime -> Assertion

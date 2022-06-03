@@ -8,6 +8,7 @@ import Control.Exception.Safe (Exception(..), MonadThrow, throwM)
 import Control.Monad.Except (MonadError, liftEither)
 import Data.Data (Data)
 import Data.Fixed (Pico)
+import Data.Function ((&))
 import Data.Time (UTCTime, addUTCTime, secondsToNominalDiffTime)
 import Data.Time.LocalTime
 import Data.Time.Zones (LocalToUTCResult(..), TZ)
@@ -56,13 +57,13 @@ fromUTC tz utct =
     }
 
 -- | Constructs a `TZTime` from a local time in the given time zone.
-fromLocalTime :: TZ -> LocalTime -> TZResult
+fromLocalTime :: TZ -> LocalTime -> Either TZError TZTime
 fromLocalTime tz lt =
   case TZ.localTimeToUTCFull tz lt of
     LTUUnique _utc namedOffset ->
-      Unique $ UnsafeTZTime lt tz namedOffset
+      Right $ UnsafeTZTime lt tz namedOffset
     LTUAmbiguous _utc1 _utc2 namedOffset1 namedOffset2 ->
-      Overlap lt
+      Left $ TZOverlap lt
         (UnsafeTZTime lt tz namedOffset1)
         (UnsafeTZTime lt tz namedOffset2)
     LTUNone utcAfter offsetBefore ->
@@ -72,7 +73,7 @@ fromLocalTime tz lt =
           fromIntegral @Int @Pico (timeZoneMinutes offsetAfter - timeZoneMinutes offsetBefore)
         utcBefore = addUTCTime (- gap) utcAfter
       in
-        Gap lt
+        Left $ TZGap lt
           (UnsafeTZTime (TZ.utcToLocalTimeTZ tz utcBefore) tz offsetBefore)
           (UnsafeTZTime (TZ.utcToLocalTimeTZ tz utcAfter) tz offsetAfter)
 
@@ -80,13 +81,13 @@ fromLocalTime tz lt =
 -- if the local time is ambiguous/invalid.
 fromLocalTimeError :: MonadError TZError m => TZ -> LocalTime -> m TZTime
 fromLocalTimeError tz =
-  liftEither . tzResultToError . fromLocalTime tz
+  liftEither . fromLocalTime tz
 
 -- | Similar to `fromLocalTime`, but throws a `TZError` in `MonadThrow`
 -- if the local time is ambiguous/invalid.
 fromLocalTimeThrow :: MonadThrow m => TZ -> LocalTime -> m TZTime
 fromLocalTimeThrow tz =
-  either throwM pure . tzResultToError . fromLocalTime tz
+  either throwM pure . fromLocalTime tz
 
 -- | Similar to `fromLocalTime`, but throws an `error`
 -- if the local time is ambiguous/invalid.
@@ -123,36 +124,26 @@ modifyUniversalTimeLine f tzt =
   fromUTC (tzTimeTZ tzt) . f . toUTC $ tzt
 
 -- | Modify this moment in time along the local time-line.
-modifyLocalTimeLine :: (LocalTime -> LocalTime) -> TZTime -> TZResult
+modifyLocalTimeLine :: (LocalTime -> LocalTime) -> TZTime -> Either TZError TZTime
 modifyLocalTimeLine f tzt =
   fromLocalTime (tzTimeTZ tzt) . f . tzTimeLocalTime $ tzt
 
--- | The result of attempting to construct a valid an unambiguous `TZTime` from a `LocalTime`.
-data TZResult
-  = Unique
-      -- ^ The given `LocalTime` represents a unique moment in time
-      -- in the given time zone.
-      TZTime
-  | Overlap
+-- | Attempted to construct a `TZTime` from an invalid or ambiguous `LocalTime`.
+data TZError
+  = TZOverlap
       LocalTime
       -- ^ The `LocalTime` is ambiguous.
       -- This usually happens when the clocks are set back in
       -- autumn and a local time happens twice.
       ~TZTime -- ^ The first occurrence of the given `LocalTime`, at the earliest offset.
       ~TZTime -- ^ The second occurrence of the given `LocalTime`, at the latest offset.
-  | Gap
+  | TZGap
       LocalTime
       -- ^ The `LocalTime` is invalid.
       -- This usually happens when the clocks are set forward in
       -- spring and a local time is skipped.
       ~TZTime -- ^ The given `LocalTime` adjusted back by the length of the gap.
       ~TZTime -- ^ The given `LocalTime` adjusted forward by the length of the gap.
-  deriving stock (Eq, Show)
-
--- | The given `LocalTime` is either invalid or ambiguous.
-data TZError
-  = TZErrorGap LocalTime
-  | TZErrorOverlap LocalTime TimeZone TimeZone
   deriving stock (Eq)
 
 instance Show TZError where
@@ -160,19 +151,13 @@ instance Show TZError where
 
 instance Exception TZError where
   displayException = \case
-    TZErrorGap lt ->
+    TZGap lt _ _ ->
       "The local time " <> show lt <> " is invalid."
-    TZErrorOverlap lt offset1 offset2 ->
+    TZOverlap lt tzt1 tzt2 ->
       "The local time "
       <> show lt
       <> " is ambiguous: it is observed at the offsets '"
-      <> show offset1
+      <> show (tzt1 & tzTimeOffset & timeZoneMinutes)
       <> "' and '"
-      <> show offset2
+      <> show (tzt2 & tzTimeOffset & timeZoneMinutes)
       <> "'."
-
-tzResultToError :: TZResult -> Either TZError TZTime
-tzResultToError = \case
-  Unique tzt -> Right tzt
-  Gap lt _ _ -> Left $ TZErrorGap lt
-  Overlap lt tzt1 tzt2 -> Left $ TZErrorOverlap lt (tzTimeOffset tzt1) (tzTimeOffset tzt2)

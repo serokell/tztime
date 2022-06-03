@@ -12,7 +12,6 @@ module Data.Time.TZTime
   -- * Constructors
   , Internal.fromUTC
   , Internal.fromLocalTime
-  , Internal.TZResult(..)
   , Internal.TZError(..)
   , Internal.fromLocalTimeError
   , Internal.fromLocalTimeThrow
@@ -81,7 +80,7 @@ import Data.Time.TZTime.Internal as Internal
 atEarliestOffset :: TZTime -> TZTime
 atEarliestOffset tzt =
   case fromLocalTime (tzTimeTZ tzt) (tzTimeLocalTime tzt) of
-    Overlap _ earliest _ -> earliest
+    Left (TZOverlap _ earliest _) -> earliest
     _ -> tzt
 
 -- | If this local time happens to be on an overlap,
@@ -89,7 +88,7 @@ atEarliestOffset tzt =
 atLatestOffset :: TZTime -> TZTime
 atLatestOffset tzt =
   case fromLocalTime (tzTimeTZ tzt) (tzTimeLocalTime tzt) of
-    Overlap _ _ latest -> latest
+    Left (TZOverlap _ _ latest) -> latest
     _ -> tzt
 
 -- | Changes the time to the earliest time possible on that day.
@@ -103,9 +102,9 @@ atLatestOffset tzt =
 atStartOfDay :: TZTime -> TZTime
 atStartOfDay tzt =
   case Internal.modifyLocalTimeLine atMidnight tzt of
-    Unique unique -> unique
-    Gap _ _ after -> after
-    Overlap _ atEarliestOffset _ -> atEarliestOffset
+    Right result -> result
+    Left (TZGap _ _ after) -> after
+    Left (TZOverlap _ atEarliestOffset _) -> atEarliestOffset
 
 ----------------------------------------------------------------------------
 -- Adding seconds/minutes/hours.
@@ -139,7 +138,7 @@ standardSeconds = secondsToNominalDiffTime
 --   autumn and a local time happens twice.
 -- * Invalid: this usually happens when the clocks are set forward in
 --   spring and a local time is skipped.
-modifyLocalStrict :: (LocalTime -> LocalTime) -> TZTime -> TZResult
+modifyLocalStrict :: (LocalTime -> LocalTime) -> TZTime -> Either TZError TZTime
 modifyLocalStrict = Internal.modifyLocalTimeLine
 
 -- | Similar to `modifyLocalStrict`, except:
@@ -154,9 +153,9 @@ modifyLocalStrict = Internal.modifyLocalTimeLine
 modifyLocalLenient :: (LocalTime -> LocalTime) -> TZTime -> TZTime
 modifyLocalLenient f tzt =
   case Internal.modifyLocalTimeLine f tzt of
-    Unique unique -> unique
-    Gap _ _ after -> after
-    Overlap _ atEarliestOffset atLatestOffset
+    Right result -> result
+    Left (TZGap _ _ after) -> after
+    Left (TZOverlap _ atEarliestOffset atLatestOffset)
       | tzTimeOffset atLatestOffset == tzTimeOffset tzt -> atLatestOffset
       | otherwise -> atEarliestOffset
 
@@ -164,13 +163,13 @@ modifyLocalLenient f tzt =
 -- if the result lands in a gap/overlap.
 modifyLocalStrictError :: MonadError TZError m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
 modifyLocalStrictError f =
-  liftEither . Internal.tzResultToError . Internal.modifyLocalTimeLine f
+  liftEither . Internal.modifyLocalTimeLine f
 
 -- | Similar to `modifyLocalStrict`, but throws a `TZError` in `MonadThrow`
 -- if the result lands in a gap/overlap.
 modifyLocalStrictThrow :: MonadThrow m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
 modifyLocalStrictThrow f =
-  either throwM pure . Internal.tzResultToError . Internal.modifyLocalTimeLine f
+  either throwM pure . Internal.modifyLocalTimeLine f
 
 ----------------------------------------------------------------------------
 -- Adding days/weeks/months/years.
