@@ -20,8 +20,11 @@ library:
   source-dirs: src
   dependencies:
   - base >= 4.7 && < 5
+  - directory >= 1.3.1.0
+  - filepath
   - mtl
   - safe-exceptions
+  - text
   - time
   - time-compat
   - tz
@@ -41,7 +44,6 @@ tests:
     - tasty-hunit-compat
     - time
     - time-compat
-    - tz
     - tztime
 
 ghc-options:

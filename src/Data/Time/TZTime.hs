@@ -7,7 +7,7 @@ module Data.Time.TZTime
   -- * TZTime
     Internal.TZTime
   , Internal.tzTimeLocalTime
-  , Internal.tzTimeTZ
+  , Internal.tzTimeTZInfo
   , Internal.tzTimeOffset
   -- * Constructors
   , Internal.fromUTC
@@ -79,7 +79,7 @@ import Data.Time.TZTime.Internal as Internal
 -- switch to the earliest of the two offsets.
 atEarliestOffset :: TZTime -> TZTime
 atEarliestOffset tzt =
-  case fromLocalTime (tzTimeTZ tzt) (tzTimeLocalTime tzt) of
+  case fromLocalTime (tzTimeTZInfo tzt) (tzTimeLocalTime tzt) of
     Left (TZOverlap _ earliest _) -> earliest
     _ -> tzt
 
@@ -87,7 +87,7 @@ atEarliestOffset tzt =
 -- switch to the latest of the two offsets.
 atLatestOffset :: TZTime -> TZTime
 atLatestOffset tzt =
-  case fromLocalTime (tzTimeTZ tzt) (tzTimeLocalTime tzt) of
+  case fromLocalTime (tzTimeTZInfo tzt) (tzTimeLocalTime tzt) of
     Left (TZOverlap _ _ latest) -> latest
     _ -> tzt
 
@@ -260,8 +260,8 @@ atMidnight = atTimeOfDay midnight
 -- | Moves the date to the next given `DayOfWeek`.
 -- If the current date is already a match, then the current date is returned unmodified.
 --
--- >>> import Data.Time.Zones.All as TZ
--- >>> tz = TZ.tzByLabel TZ.Europe__London
+-- >>> import Data.Time.TZInfo as TZ
+-- >>> tz = TZ.fromLabel TZ.Europe__London
 -- >>> tzt = unsafeFromLocalTime tz (LocalTime (YearMonthDay 2022 2 24) (TimeOfDay 10 0 0))
 -- >>> tzt
 -- 2022-02-24 10:00:00 GMT

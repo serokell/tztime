@@ -10,9 +10,9 @@ import Control.Arrow ((>>>))
 import Data.Function ((&))
 import Data.Time
 import Data.Time.Calendar.Compat (pattern YearMonthDay)
+import Data.Time.TZInfo as TZI
 import Data.Time.TZTime as TZT
 import Data.Time.TZTime.Internal (TZTime(UnsafeTZTime))
-import Data.Time.Zones.All qualified as TZ
 import Test.Tasty (TestTree)
 import Test.Tasty.HUnit
 
@@ -34,7 +34,7 @@ unit_fromLocalTime_at_gaps = do
   -- `fromLocalTime` should return the local time shifted backwards / forwards
   -- by the duration of the gap (+/- 1 hour).
   let local = LocalTime (YearMonthDay 2022 3 13) (TimeOfDay 2 15 0)
-  let tz = TZ.tzByLabel TZ.America__Winnipeg
+  let tz = TZI.fromLabel TZI.America__Winnipeg
 
   TZT.fromLocalTime tz local @?= Left
     (TZGap local
@@ -55,7 +55,7 @@ test_fromLocalTime_at_odd_gaps =
       --
       -- See: https://www.timeanddate.com/time/zone/australia/lord-howe-island?year=2022
       let local = LocalTime (YearMonthDay 2022 10 2) (TimeOfDay 2 7 0)
-      let tz = TZ.tzByLabel TZ.Australia__Lord_Howe
+      let tz = TZI.fromLabel TZI.Australia__Lord_Howe
 
       TZT.fromLocalTime tz local @?= Left
         (TZGap local
@@ -78,7 +78,7 @@ test_fromLocalTime_at_odd_gaps =
       --
       -- See: https://www.timeanddate.com/time/zone/samoa/apia?year=2011
       let local = LocalTime (YearMonthDay 2011 12 30) (TimeOfDay 10 7 0)
-      let tz = TZ.tzByLabel TZ.Pacific__Apia
+      let tz = TZI.fromLabel TZI.Pacific__Apia
 
       TZT.fromLocalTime tz local @?= Left
         (TZGap local
@@ -107,7 +107,7 @@ unit_fromLocalTime_at_overlaps = do
   -- and again at the -6 offset.
   -- `fromLocalTime` should return both instants.
   let local = LocalTime (YearMonthDay 2022 11 6) (TimeOfDay 1 15 0)
-  let tz = TZ.tzByLabel TZ.America__Winnipeg
+  let tz = TZI.fromLabel TZI.America__Winnipeg
 
   TZT.fromLocalTime tz local @?= Left
     (TZOverlap local
@@ -127,7 +127,7 @@ unit_fromLocalTime_at_odd_overlaps = do
   --
   -- See: https://www.timeanddate.com/time/zone/australia/lord-howe-island?year=2022
   let local = LocalTime (YearMonthDay 2022 4 3) (TimeOfDay 1 45 0)
-  let tz = TZ.tzByLabel TZ.Australia__Lord_Howe
+  let tz = TZI.fromLabel TZI.Australia__Lord_Howe
 
   TZT.fromLocalTime tz local @?= Left
     (TZOverlap local
@@ -151,7 +151,7 @@ unit_atStartOfDay_at_gaps = do
   -- `atStartOfDay` should return the 01:00, the earliest time possible for that day.
   --
   -- See: https://www.timeanddate.com/time/zone/cuba/havana?year=2022
-  let tz = TZ.tzByLabel TZ.America__Havana
+  let tz = TZI.fromLabel TZI.America__Havana
   let tzt = unsafeFromLocalTime tz (LocalTime (YearMonthDay 2022 3 13) (TimeOfDay 10 45 0))
   let result = atStartOfDay tzt
 
@@ -170,7 +170,7 @@ test_atStartOfDay_at_overlaps =
       -- `atStartOfDay` should return the earliest of the two midnights.
       --
       -- See: https://www.timeanddate.com/time/zone/cuba/havana?year=2022
-      let tz = TZ.tzByLabel TZ.America__Havana
+      let tz = TZI.fromLabel TZI.America__Havana
       let tzt = unsafeFromLocalTime tz (LocalTime (YearMonthDay 2022 11 6) (TimeOfDay 10 45 0))
       let result = atStartOfDay tzt
 
@@ -195,7 +195,7 @@ test_atStartOfDay_at_overlaps =
       -- See:
       --   * https://davecturner.github.io/2017/12/27/timezone-curiosities.html
       --   * https://www.timeanddate.com/time/zone/canada/st-johns?year=2009
-      let tz = TZ.tzByLabel TZ.America__St_Johns
+      let tz = TZI.fromLabel TZI.America__St_Johns
       let tzt = unsafeFromLocalTime tz (LocalTime (YearMonthDay 2009 11 1) (TimeOfDay 10 45 0))
       let result = atStartOfDay tzt
 
@@ -219,7 +219,7 @@ unit_addTime_and_diffTZTime_operate_on_the_universal_time_line = do
   -- from CDT (UTC-5) to CST (UTC-6).
   -- In other words, the clocks are turned back 1 hour, back to 01:00:00.
   let local = LocalTime (YearMonthDay 2022 11 6) (TimeOfDay 0 30 0)
-  let tz = TZ.tzByLabel TZ.America__Winnipeg
+  let tz = TZI.fromLabel TZI.America__Winnipeg
   let tzt = unsafeFromLocalTime tz local
 
   addTime (standardHours 1) tzt @?=
@@ -237,7 +237,7 @@ unit_addTime_and_diffTZTime_operate_on_the_universal_time_line = do
 
 unit_composing_modifiers :: Assertion
 unit_composing_modifiers = do
-  let tz = TZ.tzByLabel TZ.America__Havana
+  let tz = TZI.fromLabel TZI.America__Havana
   let tzt = unsafeFromLocalTime tz (LocalTime (YearMonthDay 2022 11 6) (TimeOfDay 10 45 0))
 
   let result =
@@ -257,7 +257,7 @@ unit_addCalendar_zero_equals_id :: Assertion
 unit_addCalendar_zero_equals_id = do
   -- When using "lenient" behavior (i.e. `modifyLocalLenient`),
   -- adding 0 days should be equivalent to the identity function.
-  let tz = TZ.tzByLabel TZ.America__Winnipeg
+  let tz = TZI.fromLabel TZI.America__Winnipeg
   let mkLocalTime hh mm ss = LocalTime (YearMonthDay 2022 11 6) (TimeOfDay hh mm ss)
 
   check $ unsafeFromLocalTime tz (mkLocalTime 0 0 0)

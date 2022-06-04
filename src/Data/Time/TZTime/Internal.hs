@@ -11,7 +11,8 @@ import Data.Fixed (Pico)
 import Data.Function ((&))
 import Data.Time (UTCTime, addUTCTime, secondsToNominalDiffTime)
 import Data.Time.LocalTime
-import Data.Time.Zones (LocalToUTCResult(..), TZ)
+import Data.Time.TZInfo (TZInfo, tziRules)
+import Data.Time.Zones (LocalToUTCResult(..))
 import Data.Time.Zones qualified as TZ
 import GHC.Generics (Generic)
 import GHC.Stack (HasCallStack)
@@ -23,7 +24,7 @@ import GHC.Stack (HasCallStack)
 -- | A valid and unambiguous point in time in some time zone.
 data TZTime = UnsafeTZTime
   { tztLocalTime :: LocalTime
-  , tztTZ :: TZ
+  , tztTZInfo :: TZInfo
   , tztOffset :: TimeZone
   }
   deriving stock (Eq, Data, Generic)
@@ -36,8 +37,8 @@ tzTimeLocalTime :: TZTime -> LocalTime
 tzTimeLocalTime = tztLocalTime
 
 -- | The time zone of this `TZTime`.
-tzTimeTZ :: TZTime -> TZ
-tzTimeTZ = tztTZ
+tzTimeTZInfo :: TZTime -> TZInfo
+tzTimeTZInfo = tztTZInfo
 
 -- | The offset observed in this time zone at this moment in time.
 tzTimeOffset :: TZTime -> TimeZone
@@ -48,52 +49,52 @@ tzTimeOffset = tztOffset
 ----------------------------------------------------------------------------
 
 -- | Converts a `UTCTime` to the given time zone.
-fromUTC :: TZ -> UTCTime -> TZTime
-fromUTC tz utct =
+fromUTC :: TZInfo -> UTCTime -> TZTime
+fromUTC tzi utct =
   UnsafeTZTime
-    { tztLocalTime = TZ.utcToLocalTimeTZ tz utct
-    , tztTZ = tz
-    , tztOffset = TZ.timeZoneForUTCTime tz utct
+    { tztLocalTime = TZ.utcToLocalTimeTZ (tziRules tzi) utct
+    , tztTZInfo = tzi
+    , tztOffset = TZ.timeZoneForUTCTime (tziRules tzi) utct
     }
 
 -- | Constructs a `TZTime` from a local time in the given time zone.
-fromLocalTime :: TZ -> LocalTime -> Either TZError TZTime
-fromLocalTime tz lt =
-  case TZ.localTimeToUTCFull tz lt of
+fromLocalTime :: TZInfo -> LocalTime -> Either TZError TZTime
+fromLocalTime tzi lt =
+  case TZ.localTimeToUTCFull (tziRules tzi) lt of
     LTUUnique _utc namedOffset ->
-      Right $ UnsafeTZTime lt tz namedOffset
+      Right $ UnsafeTZTime lt tzi namedOffset
     LTUAmbiguous _utc1 _utc2 namedOffset1 namedOffset2 ->
       Left $ TZOverlap lt
-        (UnsafeTZTime lt tz namedOffset1)
-        (UnsafeTZTime lt tz namedOffset2)
+        (UnsafeTZTime lt tzi namedOffset1)
+        (UnsafeTZTime lt tzi namedOffset2)
     LTUNone utcAfter offsetBefore ->
       let
-        offsetAfter = TZ.timeZoneForUTCTime tz utcAfter
+        offsetAfter = TZ.timeZoneForUTCTime (tziRules tzi) utcAfter
         gap = secondsToNominalDiffTime $ 60 *
           fromIntegral @Int @Pico (timeZoneMinutes offsetAfter - timeZoneMinutes offsetBefore)
         utcBefore = addUTCTime (- gap) utcAfter
       in
         Left $ TZGap lt
-          (UnsafeTZTime (TZ.utcToLocalTimeTZ tz utcBefore) tz offsetBefore)
-          (UnsafeTZTime (TZ.utcToLocalTimeTZ tz utcAfter) tz offsetAfter)
+          (UnsafeTZTime (TZ.utcToLocalTimeTZ (tziRules tzi) utcBefore) tzi offsetBefore)
+          (UnsafeTZTime (TZ.utcToLocalTimeTZ (tziRules tzi) utcAfter) tzi offsetAfter)
 
 -- | Similar to `fromLocalTime`, but throws a `TZError` in `MonadError`
 -- if the local time is ambiguous/invalid.
-fromLocalTimeError :: MonadError TZError m => TZ -> LocalTime -> m TZTime
-fromLocalTimeError tz =
-  liftEither . fromLocalTime tz
+fromLocalTimeError :: MonadError TZError m => TZInfo -> LocalTime -> m TZTime
+fromLocalTimeError tzi =
+  liftEither . fromLocalTime tzi
 
 -- | Similar to `fromLocalTime`, but throws a `TZError` in `MonadThrow`
 -- if the local time is ambiguous/invalid.
-fromLocalTimeThrow :: MonadThrow m => TZ -> LocalTime -> m TZTime
-fromLocalTimeThrow tz =
-  either throwM pure . fromLocalTime tz
+fromLocalTimeThrow :: MonadThrow m => TZInfo -> LocalTime -> m TZTime
+fromLocalTimeThrow tzi =
+  either throwM pure . fromLocalTime tzi
 
 -- | Similar to `fromLocalTime`, but throws an `error`
 -- if the local time is ambiguous/invalid.
-unsafeFromLocalTime :: HasCallStack => TZ -> LocalTime -> TZTime
-unsafeFromLocalTime tz lt =
-  case fromLocalTimeError tz lt of
+unsafeFromLocalTime :: HasCallStack => TZInfo -> LocalTime -> TZTime
+unsafeFromLocalTime tzi lt =
+  case fromLocalTimeError tzi lt of
     Right tzt -> tzt
     Left err -> error $ "unsafeFromLocalTime: " <> displayException err
 
@@ -111,8 +112,8 @@ toZonedTime :: TZTime -> ZonedTime
 toZonedTime tzt = ZonedTime (tzTimeLocalTime tzt) (tzTimeOffset tzt)
 
 -- | Converts this moment in time to some other time zone.
-inTZ :: TZ -> TZTime -> TZTime
-inTZ tz = fromUTC tz . toUTC
+inTZ :: TZInfo -> TZTime -> TZTime
+inTZ tzi = fromUTC tzi . toUTC
 
 ----------------------------------------------------------------------------
 -- Modifying a TZTime
@@ -121,12 +122,12 @@ inTZ tz = fromUTC tz . toUTC
 -- | Modify this moment in time along the universal time-line.
 modifyUniversalTimeLine :: (UTCTime -> UTCTime) -> TZTime -> TZTime
 modifyUniversalTimeLine f tzt =
-  fromUTC (tzTimeTZ tzt) . f . toUTC $ tzt
+  fromUTC (tzTimeTZInfo tzt) . f . toUTC $ tzt
 
 -- | Modify this moment in time along the local time-line.
 modifyLocalTimeLine :: (LocalTime -> LocalTime) -> TZTime -> Either TZError TZTime
 modifyLocalTimeLine f tzt =
-  fromLocalTime (tzTimeTZ tzt) . f . tzTimeLocalTime $ tzt
+  fromLocalTime (tzTimeTZInfo tzt) . f . tzTimeLocalTime $ tzt
 
 -- | Attempted to construct a `TZTime` from an invalid or ambiguous `LocalTime`.
 data TZError
