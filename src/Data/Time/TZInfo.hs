@@ -15,6 +15,7 @@ module Data.Time.TZInfo
   , getCurrentTZInfo
   ) where
 
+import Control.DeepSeq (NFData)
 import Data.Data (Data)
 import Data.String (IsString, fromString)
 import Data.Text (Text)
@@ -34,10 +35,12 @@ data TZInfo = TZInfo
   , tziRules :: TZ
   }
   deriving stock (Eq, Show, Data, Generic)
+  deriving anyclass NFData
 
 newtype TZIdentifier = TZIdentifier { unTZIdentifier :: Text }
   deriving newtype (Eq, Show, Ord, IsString)
   deriving stock (Data, Generic)
+  deriving anyclass NFData
 
 fromIdentifier :: TZIdentifier -> Maybe TZInfo
 fromIdentifier ident =

@@ -4,6 +4,7 @@
 
 module Data.Time.TZTime.Internal where
 
+import Control.DeepSeq (NFData)
 import Control.Exception.Safe (Exception(..), MonadThrow, throwM)
 import Control.Monad.Except (MonadError, liftEither)
 import Data.Data (Data)
@@ -28,6 +29,7 @@ data TZTime = UnsafeTZTime
   , tztOffset :: TimeZone
   }
   deriving stock (Eq, Data, Generic)
+  deriving anyclass NFData
 
 instance Show TZTime where
   show = show . toZonedTime
@@ -145,7 +147,8 @@ data TZError
       -- spring and a local time is skipped.
       ~TZTime -- ^ The given `LocalTime` adjusted back by the length of the gap.
       ~TZTime -- ^ The given `LocalTime` adjusted forward by the length of the gap.
-  deriving stock (Eq)
+  deriving stock (Eq, Generic)
+  deriving anyclass (NFData)
 
 instance Show TZError where
   show = displayException
