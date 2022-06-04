@@ -9,7 +9,6 @@ import Control.Exception.Safe (Exception(..), MonadThrow, throwM)
 import Control.Monad.Except (MonadError, liftEither)
 import Data.Data (Data)
 import Data.Fixed (Pico)
-import Data.Function ((&))
 import Data.Text qualified as T
 import Data.Time (UTCTime, addUTCTime, secondsToNominalDiffTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
@@ -160,13 +159,19 @@ instance Show TZError where
 
 instance Exception TZError where
   displayException = \case
-    TZGap lt _ _ ->
-      "The local time " <> show lt <> " is invalid."
+    TZGap lt tzt1 _ ->
+      "The local time "
+      <> show lt
+      <> " is invalid in the time zone "
+      <> show (tziIdentifier $ tztTZInfo tzt1)
+      <> "."
     TZOverlap lt tzt1 tzt2 ->
       "The local time "
       <> show lt
-      <> " is ambiguous: it is observed at the offsets '"
-      <> show (tzt1 & tzTimeOffset & timeZoneMinutes)
+      <> " is ambiguous in the time zone "
+      <> show (tziIdentifier $ tztTZInfo tzt1)
+      <> ": it is observed at the offsets '"
+      <> iso8601Show (tzTimeOffset tzt1)
       <> "' and '"
-      <> show (tzt2 & tzTimeOffset & timeZoneMinutes)
+      <> iso8601Show (tzTimeOffset tzt2)
       <> "'."
