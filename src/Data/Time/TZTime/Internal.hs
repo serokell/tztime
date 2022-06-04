@@ -10,9 +10,11 @@ import Control.Monad.Except (MonadError, liftEither)
 import Data.Data (Data)
 import Data.Fixed (Pico)
 import Data.Function ((&))
+import Data.Text qualified as T
 import Data.Time (UTCTime, addUTCTime, secondsToNominalDiffTime)
+import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.Time.LocalTime
-import Data.Time.TZInfo (TZInfo, tziRules)
+import Data.Time.TZInfo (TZInfo, tziIdentifier, tziRules, unTZIdentifier)
 import Data.Time.Zones (LocalToUTCResult(..))
 import Data.Time.Zones qualified as TZ
 import GHC.Generics (Generic)
@@ -32,7 +34,10 @@ data TZTime = UnsafeTZTime
   deriving anyclass NFData
 
 instance Show TZTime where
-  show = show . toZonedTime
+  show (UnsafeTZTime lt tzi offset) =
+    show lt <> " " <> iso8601Show offset <> " [" <> tzIdent <> "]"
+    where
+      tzIdent = T.unpack $ unTZIdentifier $ tziIdentifier tzi
 
 -- | The local time of this `TZTime`.
 tzTimeLocalTime :: TZTime -> LocalTime

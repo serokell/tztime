@@ -276,13 +276,13 @@ atMidnight = atTimeOfDay midnight
 -- >>> tz = TZ.fromLabel TZ.Europe__London
 -- >>> tzt = unsafeFromLocalTime tz (LocalTime (YearMonthDay 2022 2 24) (TimeOfDay 10 0 0))
 -- >>> tzt
--- 2022-02-24 10:00:00 GMT
+-- 2022-02-24 10:00:00 +00:00 [Europe/London]
 --
 -- >>> tzt & modifyLocalLenient (atFirstDayOfWeekOnAfter Thursday)
--- 2022-02-24 10:00:00 GMT
+-- 2022-02-24 10:00:00 +00:00 [Europe/London]
 --
 -- >>> tzt & modifyLocalLenient (atFirstDayOfWeekOnAfter Wednesday)
--- 2022-03-02 10:00:00 GMT
+-- 2022-03-02 10:00:00 +00:00 [Europe/London]
 atFirstDayOfWeekOnAfter :: DayOfWeek -> LocalTime -> LocalTime
 atFirstDayOfWeekOnAfter dow lt = lt
   { localDay = firstDayOfWeekOnAfter dow $ localDay lt
