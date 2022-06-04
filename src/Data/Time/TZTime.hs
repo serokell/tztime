@@ -10,6 +10,7 @@ module Data.Time.TZTime
   , Internal.tzTimeTZInfo
   , Internal.tzTimeOffset
   -- * Constructors
+  , getCurrentTZTime
   , Internal.fromUTC
   , Internal.fromLocalTime
   , Internal.TZError(..)
@@ -62,14 +63,25 @@ import Control.Monad.Except (MonadError, liftEither)
 import Data.Fixed (Pico)
 import Data.Time
   (CalendarDiffDays(..), Day, DayOfWeek(..), LocalTime(..), NominalDiffTime, TimeOfDay(..),
-  addUTCTime, diffUTCTime, midnight, secondsToNominalDiffTime)
+  addUTCTime, diffUTCTime, getCurrentTime, midnight, secondsToNominalDiffTime)
 import Data.Time qualified as Time
 import Data.Time.Calendar.Compat
   (DayOfMonth, MonthOfYear, Year, firstDayOfWeekOnAfter, pattern YearMonthDay)
+import Data.Time.TZInfo (getCurrentTZInfo)
 import Data.Time.TZTime.Internal as Internal
 
 -- $setup
 -- >>> import Data.Function ((&))
+
+----------------------------------------------------------------------------
+-- Constructors
+----------------------------------------------------------------------------
+
+getCurrentTZTime :: IO TZTime
+getCurrentTZTime = do
+  tzi <- getCurrentTZInfo
+  utcNow <- getCurrentTime
+  pure $ fromUTC tzi utcNow
 
 ----------------------------------------------------------------------------
 -- Modifying a TZTime
