@@ -31,9 +31,9 @@ module Data.Time.TZTime
   , standardMinutes
   , standardSeconds
   -- * Local time-line
-  , modifyLocalStrict
+  , modifyLocal
   , modifyLocalLenient
-  , modifyLocalStrictThrow
+  , modifyLocalThrow
   -- ** Adding days/weeks/months/years.
   , addCalendarClip
   , addCalendarRollOver
@@ -148,10 +148,10 @@ standardSeconds = secondsToNominalDiffTime
 --   autumn and a local time happens twice.
 -- * Invalid: this usually happens when the clocks are set forward in
 --   spring and a local time is skipped.
-modifyLocalStrict :: MonadError TZError m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
-modifyLocalStrict = Internal.modifyLocalTimeLine
+modifyLocal :: MonadError TZError m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
+modifyLocal = Internal.modifyLocalTimeLine
 
--- | Similar to `modifyLocalStrict`, except:
+-- | Similar to `modifyLocal`, except:
 --
 -- If the result lands on a gap, shift the time forward by
 -- the duration of the gap.
@@ -162,18 +162,18 @@ modifyLocalStrict = Internal.modifyLocalTimeLine
 -- If this is not possible, use the earliest offset.
 modifyLocalLenient :: (LocalTime -> LocalTime) -> TZTime -> TZTime
 modifyLocalLenient f tzt =
-  case modifyLocalStrict f tzt of
+  case modifyLocal f tzt of
     Right result -> result
     Left (TZGap _ _ after) -> after
     Left (TZOverlap _ atEarliestOffset atLatestOffset)
       | tzTimeOffset atLatestOffset == tzTimeOffset tzt -> atLatestOffset
       | otherwise -> atEarliestOffset
 
--- | Similar to `modifyLocalStrict`, but throws a `TZError` in `MonadThrow`
+-- | Similar to `modifyLocal`, but throws a `TZError` in `MonadThrow`
 -- if the result lands in a gap/overlap.
-modifyLocalStrictThrow :: MonadThrow m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
-modifyLocalStrictThrow f =
-  either throwM pure . Internal.modifyLocalTimeLine f
+modifyLocalThrow :: MonadThrow m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
+modifyLocalThrow f =
+  either throwM pure . modifyLocal f
 
 ----------------------------------------------------------------------------
 -- Adding days/weeks/months/years.
