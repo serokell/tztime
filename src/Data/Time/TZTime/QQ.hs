@@ -55,8 +55,7 @@ tz = QuasiQuoter
   where
     qexp :: String -> Q Exp
     qexp input = do
-      I.readP_to_Q input I.readComponentsP
-        >>= I.getValidTZTimes
-        >>= \case
-          tzt :| [] -> unTypeCode $ I.liftTZTime tzt
-          tzts -> fail $ "Ambiguous time: please specify an offset.\n" <> I.mkSuggestions tzts
+      (lt, offsetMaybe, ident) <- I.readP_to_Q input I.readComponentsP
+      I.getValidTZTimes lt ident >>= I.checkOffset offsetMaybe >>= \case
+        tzt :| [] -> unTypeCode $ I.liftTZTime tzt
+        tzts -> fail $ "Ambiguous time: please specify an offset.\n" <> I.mkSuggestions tzts
