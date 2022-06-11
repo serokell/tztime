@@ -14,7 +14,6 @@ module Data.Time.TZTime
   , Internal.fromUTC
   , Internal.fromLocalTime
   , Internal.TZError(..)
-  , Internal.fromLocalTimeError
   , Internal.fromLocalTimeThrow
   , Internal.unsafeFromLocalTime
   -- * Conversions
@@ -34,7 +33,6 @@ module Data.Time.TZTime
   -- * Local time-line
   , modifyLocalStrict
   , modifyLocalLenient
-  , modifyLocalStrictError
   , modifyLocalStrictThrow
   -- ** Adding days/weeks/months/years.
   , addCalendarClip
@@ -59,7 +57,7 @@ module Data.Time.TZTime
   ) where
 
 import Control.Exception.Safe (MonadThrow, throwM)
-import Control.Monad.Except (MonadError, liftEither)
+import Control.Monad.Except (MonadError)
 import Data.Fixed (Pico)
 import Data.Time
   (CalendarDiffDays(..), Day, DayOfWeek(..), LocalTime(..), NominalDiffTime, TimeOfDay(..),
@@ -150,7 +148,7 @@ standardSeconds = secondsToNominalDiffTime
 --   autumn and a local time happens twice.
 -- * Invalid: this usually happens when the clocks are set forward in
 --   spring and a local time is skipped.
-modifyLocalStrict :: (LocalTime -> LocalTime) -> TZTime -> Either TZError TZTime
+modifyLocalStrict :: MonadError TZError m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
 modifyLocalStrict = Internal.modifyLocalTimeLine
 
 -- | Similar to `modifyLocalStrict`, except:
@@ -164,18 +162,12 @@ modifyLocalStrict = Internal.modifyLocalTimeLine
 -- If this is not possible, use the earliest offset.
 modifyLocalLenient :: (LocalTime -> LocalTime) -> TZTime -> TZTime
 modifyLocalLenient f tzt =
-  case Internal.modifyLocalTimeLine f tzt of
+  case modifyLocalStrict f tzt of
     Right result -> result
     Left (TZGap _ _ after) -> after
     Left (TZOverlap _ atEarliestOffset atLatestOffset)
       | tzTimeOffset atLatestOffset == tzTimeOffset tzt -> atLatestOffset
       | otherwise -> atEarliestOffset
-
--- | Similar to `modifyLocalStrict`, but throws a `TZError` in `MonadError`
--- if the result lands in a gap/overlap.
-modifyLocalStrictError :: MonadError TZError m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
-modifyLocalStrictError f =
-  liftEither . Internal.modifyLocalTimeLine f
 
 -- | Similar to `modifyLocalStrict`, but throws a `TZError` in `MonadThrow`
 -- if the result lands in a gap/overlap.
