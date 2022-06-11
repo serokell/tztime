@@ -20,6 +20,7 @@
 # Losing variable names can be not-nice
 - ignore: { name: Eta reduce }
 - ignore: { name: Avoid lambda }
+- ignore: { name: Use tuple-section }
 
 # Humans know better
 - ignore: { name: Use camelCase }

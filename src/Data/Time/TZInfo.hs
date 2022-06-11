@@ -26,6 +26,7 @@ import Data.Time.Zones qualified as TZ
 import Data.Time.Zones.All (TZLabel)
 import Data.Time.Zones.All qualified as TZ
 import GHC.Generics (Generic)
+import Language.Haskell.TH.Syntax (Lift)
 import System.Directory (getSymbolicLinkTarget)
 import System.Environment (lookupEnv)
 import System.FilePath (makeRelative)
@@ -39,7 +40,7 @@ data TZInfo = TZInfo
 
 newtype TZIdentifier = TZIdentifier { unTZIdentifier :: Text }
   deriving newtype (Eq, Show, Ord, IsString)
-  deriving stock (Data, Generic)
+  deriving stock (Data, Generic, Lift)
   deriving anyclass NFData
 
 fromIdentifier :: TZIdentifier -> Maybe TZInfo

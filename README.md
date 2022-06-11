@@ -126,14 +126,12 @@ This package aims to:
 Here's how you'd do the above using `tztime`:
 
 ```hs
-λ> import Data.Time.TZTime as TZ
-λ> import Data.Time.TZInfo as TZI
+λ> import Data.Time.TZTime
+λ> import Data.Time.TZTime.QQ (tz)
 ```
 
 ```hs
-λ> tz = TZI.fromLabel America__Winnipeg
-λ> t1 <- fromLocalTimeThrow tz $ LocalTime (YearMonthDay 2022 11 6) (TimeOfDay 0 30 0)
-
+λ> t1 = [tz|2022-11-06 00:30:00 [America/Winnipeg]|]
 λ> t2 = addTime (standardHours 4) t1
 λ> t2
 2022-11-06 03:30:00 -06:00 [America/Winnipeg]
@@ -143,7 +141,7 @@ Here's how you'd do the above using `tztime`:
 ```
 
 ```hs
-λ> t1 <- fromLocalTimeThrow tz $ LocalTime (YearMonthDay 2022 3 12) (TimeOfDay 23 30 0)
+λ> t1 = [tz|2022-03-12 23:30:00 [America/Winnipeg]|]
 λ> modifyLocalLenient (addCalendarClip (calendarDays 1)) t1
 2022-03-13 23:30:00 -05:00 [America/Winnipeg]
 ```

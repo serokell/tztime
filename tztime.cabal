@@ -27,6 +27,7 @@ library
       Data.Time.TZInfo
       Data.Time.TZTime
       Data.Time.TZTime.Internal
+      Data.Time.TZTime.QQ
   other-modules:
       Paths_tztime
   hs-source-dirs:
@@ -44,6 +45,7 @@ library
       DeriveFoldable
       DeriveFunctor
       DeriveGeneric
+      DeriveLift
       DeriveTraversable
       DerivingStrategies
       DerivingVia
@@ -54,6 +56,7 @@ library
       GADTs
       GeneralizedNewtypeDeriving
       ImportQualifiedPost
+      InstanceSigs
       LambdaCase
       MultiParamTypeClasses
       MultiWayIf
@@ -89,6 +92,7 @@ library
     , filepath
     , mtl
     , safe-exceptions
+    , template-haskell
     , text
     , time
     , time-compat
@@ -117,6 +121,7 @@ test-suite tztime-test
       DeriveFoldable
       DeriveFunctor
       DeriveGeneric
+      DeriveLift
       DeriveTraversable
       DerivingStrategies
       DerivingVia
@@ -127,6 +132,7 @@ test-suite tztime-test
       GADTs
       GeneralizedNewtypeDeriving
       ImportQualifiedPost
+      InstanceSigs
       LambdaCase
       MultiParamTypeClasses
       MultiWayIf
