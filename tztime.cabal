@@ -104,6 +104,8 @@ test-suite tztime-test
   main-is: Main.hs
   other-modules:
       Test.Data.Time.TZTime
+      Test.Data.Time.TZTime.QQ
+      Test.Data.Time.TZTime.Read
       Tree
       Paths_tztime
   hs-source-dirs:
@@ -167,6 +169,8 @@ test-suite tztime-test
       base >=4.7 && <5
     , tasty
     , tasty-hunit-compat
+    , template-haskell
+    , th-test-utils
     , time
     , time-compat
     , tztime

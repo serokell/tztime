@@ -17,10 +17,10 @@ import Test.Tasty (TestTree)
 import Test.Tasty.HUnit
 
 cst :: TimeZone
-cst = TimeZone (-6 * 60) False "CST"
+cst = read "CST"
 
 cdt :: TimeZone
-cdt = TimeZone (-5 * 60) True "CDT"
+cdt = read "CDT"
 
 unit_fromLocalTime_at_gaps :: Assertion
 unit_fromLocalTime_at_gaps = do

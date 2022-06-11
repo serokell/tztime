@@ -10,6 +10,7 @@ import Data.List.NonEmpty (NonEmpty(..))
 import Data.Time.TZTime.Internal qualified as I
 import Language.Haskell.TH (Exp, Q, unTypeCode)
 import Language.Haskell.TH.Quote
+import Text.ParserCombinators.ReadP qualified as P
 
 {- |
 Quasiquoter for parsing a `TZTime` at compile-time in the format:
@@ -55,7 +56,7 @@ tz = QuasiQuoter
   where
     qexp :: String -> Q Exp
     qexp input = do
-      (lt, offsetMaybe, ident) <- I.readP_to_Q input I.readComponentsP
+      (lt, offsetMaybe, ident) <- I.readP_to_Q input (I.readComponentsP <* P.skipSpaces)
       I.getValidTZTimes lt ident >>= I.checkOffset offsetMaybe >>= \case
         tzt :| [] -> unTypeCode $ I.liftTZTime tzt
         tzts -> fail $ "Ambiguous time: please specify an offset.\n" <> I.mkSuggestions tzts

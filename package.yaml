@@ -44,9 +44,11 @@ tests:
     - base >= 4.7 && < 5
     - tasty
     - tasty-hunit-compat
+    - template-haskell
     - time
     - time-compat
     - tztime
+    - th-test-utils
 
 ghc-options:
   - -Weverything
