@@ -96,6 +96,18 @@ fromLocalTime tzi lt =
           (UnsafeTZTime (TZ.utcToLocalTimeTZ (tziRules tzi) utcBefore) tzi offsetBefore)
           (UnsafeTZTime (TZ.utcToLocalTimeTZ (tziRules tzi) utcAfter) tzi offsetAfter)
 
+-- | Similar to `fromLocalTime`, except:
+--
+-- * If the result lands on a gap, shift the time forward by
+--   the duration of the gap.
+-- * If it lands on an overlap, use the earliest offset.
+fromLocalTimeLenient :: TZInfo -> LocalTime -> TZTime
+fromLocalTimeLenient tzi lt =
+  case fromLocalTime tzi lt of
+    Right tzt -> tzt
+    Left (TZGap _ _ after) -> after
+    Left (TZOverlap _ atEarliestOffset _) -> atEarliestOffset
+
 -- | Similar to `fromLocalTime`, but throws a `TZError` in `MonadThrow`
 -- if the local time is ambiguous/invalid.
 fromLocalTimeThrow :: MonadThrow m => TZInfo -> LocalTime -> m TZTime

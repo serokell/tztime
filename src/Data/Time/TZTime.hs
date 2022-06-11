@@ -13,9 +13,10 @@ module Data.Time.TZTime
   , getCurrentTZTime
   , Internal.fromUTC
   , Internal.fromLocalTime
-  , Internal.TZError(..)
+  , Internal.fromLocalTimeLenient
   , Internal.fromLocalTimeThrow
   , Internal.unsafeFromLocalTime
+  , Internal.TZError(..)
   -- * Conversions
   , Internal.toUTC
   , Internal.toZonedTime
