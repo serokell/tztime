@@ -242,7 +242,7 @@ unit_composing_modifiers = do
 
   let result =
         tzt
-          & modifyLocalLenient (
+          & modifyLocal (
               addCalendarClip (calendarMonths 2 <> calendarDays 3)
               >>> atFirstDayOfWeekOnAfter Wednesday
               >>> atMidnight
@@ -255,8 +255,8 @@ unit_composing_modifiers = do
 
 unit_addCalendar_zero_equals_id :: Assertion
 unit_addCalendar_zero_equals_id = do
-  -- When using "lenient" behavior (i.e. `modifyLocalLenient`),
-  -- adding 0 days should be equivalent to the identity function.
+  -- With `modifyLocal`, adding 0 days should be equivalent
+  -- to the identity function.
   let tz = TZI.fromLabel TZI.America__Winnipeg
   let mkLocalTime hh mm ss = LocalTime (YearMonthDay 2022 11 6) (TimeOfDay hh mm ss)
 
@@ -272,4 +272,4 @@ unit_addCalendar_zero_equals_id = do
   where
     check :: TZTime -> Assertion
     check tzt = do
-      modifyLocalLenient (addCalendarClip (calendarDays 0)) tzt @?= tzt
+      modifyLocal (addCalendarClip (calendarDays 0)) tzt @?= tzt

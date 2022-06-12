@@ -142,6 +142,6 @@ Here's how you'd do the above using `tztime`:
 
 ```hs
 λ> t1 = [tz|2022-03-12 23:30:00 [America/Winnipeg]|]
-λ> modifyLocalLenient (addCalendarClip (calendarDays 1)) t1
+λ> modifyLocal (addCalendarClip (calendarDays 1)) t1
 2022-03-13 23:30:00 -05:00 [America/Winnipeg]
 ```
