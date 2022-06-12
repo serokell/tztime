@@ -81,9 +81,10 @@ fromUTC tzi utct =
     , tztOffset = TZ.timeZoneForUTCTime (tziRules tzi) utct
     }
 
--- | Constructs a `TZTime` from a local time in the given time zone.
-fromLocalTime :: MonadError TZError m => TZInfo -> LocalTime -> m TZTime
-fromLocalTime tzi lt =
+-- | Similar to `fromLocalTime`, but returns a `TZError`
+-- if the local time is ambiguous/invalid.
+fromLocalTimeStrict :: MonadError TZError m => TZInfo -> LocalTime -> m TZTime
+fromLocalTimeStrict tzi lt =
   case TZ.localTimeToUTCFull (tziRules tzi) lt of
     LTUUnique _utc namedOffset ->
       pure $ UnsafeTZTime lt tzi namedOffset
@@ -102,14 +103,15 @@ fromLocalTime tzi lt =
           (UnsafeTZTime (TZ.utcToLocalTimeTZ (tziRules tzi) utcBefore) tzi offsetBefore)
           (UnsafeTZTime (TZ.utcToLocalTimeTZ (tziRules tzi) utcAfter) tzi offsetAfter)
 
--- | Similar to `fromLocalTime`, except:
+-- | Constructs a `TZTime` from a local time in the given time zone.
 --
--- * If the result lands on a gap, shift the time forward by
---   the duration of the gap.
--- * If it lands on an overlap, use the earliest offset.
-fromLocalTimeLenient :: TZInfo -> LocalTime -> TZTime
-fromLocalTimeLenient tzi lt =
-  case fromLocalTime tzi lt of
+-- * If the local time lands on a "gap" (e.g. when the clocks are set forward in spring and a local time is skipped),
+--   shift the time forward by the duration of the gap.
+-- * If it lands on an "overlap" (e.g. when the clocks are set back in autumn and a local time happens twice),
+--   use the earliest offset.
+fromLocalTime :: TZInfo -> LocalTime -> TZTime
+fromLocalTime tzi lt =
+  case fromLocalTimeStrict tzi lt of
     Right tzt -> tzt
     Left (TZGap _ _ after) -> after
     Left (TZOverlap _ atEarliestOffset _) -> atEarliestOffset
@@ -118,13 +120,13 @@ fromLocalTimeLenient tzi lt =
 -- if the local time is ambiguous/invalid.
 fromLocalTimeThrow :: MonadThrow m => TZInfo -> LocalTime -> m TZTime
 fromLocalTimeThrow tzi =
-  either throwM pure . fromLocalTime tzi
+  either throwM pure . fromLocalTimeStrict tzi
 
 -- | Similar to `fromLocalTime`, but throws an `error`
 -- if the local time is ambiguous/invalid.
 unsafeFromLocalTime :: HasCallStack => TZInfo -> LocalTime -> TZTime
 unsafeFromLocalTime tzi lt =
-  case fromLocalTime tzi lt of
+  case fromLocalTimeStrict tzi lt of
     Right tzt -> tzt
     Left err -> error $ "unsafeFromLocalTime: " <> displayException err
 
@@ -157,7 +159,7 @@ modifyUniversalTimeLine f tzt =
 -- | Modify this moment in time along the local time-line.
 modifyLocalTimeLine :: MonadError TZError m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
 modifyLocalTimeLine f tzt =
-  fromLocalTime (tzTimeTZInfo tzt) . f . tzTimeLocalTime $ tzt
+  fromLocalTimeStrict (tzTimeTZInfo tzt) . f . tzTimeLocalTime $ tzt
 
 -- | Attempted to construct a `TZTime` from an invalid or ambiguous `LocalTime`.
 data TZError
@@ -244,7 +246,7 @@ getValidTZTimes lt ident = do
   tzi <- case fromIdentifier ident of
     Nothing -> fail $ "Unknown time zone: '" <> T.unpack (unTZIdentifier ident) <> "'"
     Just tzi -> pure tzi
-  case fromLocalTime tzi lt of
+  case fromLocalTimeStrict tzi lt of
     Right tzt -> pure $ tzt :| []
     Left (TZOverlap _ tzt1 tzt2) -> pure $ tzt1 :| [tzt2]
     Left (TZGap _ tzt1 tzt2) ->

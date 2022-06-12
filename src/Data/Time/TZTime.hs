@@ -13,7 +13,7 @@ module Data.Time.TZTime
   , getCurrentTZTime
   , Internal.fromUTC
   , Internal.fromLocalTime
-  , Internal.fromLocalTimeLenient
+  , Internal.fromLocalTimeStrict
   , Internal.fromLocalTimeThrow
   , Internal.unsafeFromLocalTime
   , Internal.TZError(..)
@@ -105,7 +105,7 @@ getCurrentTZTime = do
 -- 2022-11-06 01:30:00 -05:00 [America/Winnipeg]
 atEarliestOffset :: TZTime -> TZTime
 atEarliestOffset tzt =
-  case fromLocalTime (tzTimeTZInfo tzt) (tzTimeLocalTime tzt) of
+  case fromLocalTimeStrict (tzTimeTZInfo tzt) (tzTimeLocalTime tzt) of
     Left (TZOverlap _ earliest _) -> earliest
     _ -> tzt
 
@@ -116,7 +116,7 @@ atEarliestOffset tzt =
 -- 2022-11-06 01:30:00 -06:00 [America/Winnipeg]
 atLatestOffset :: TZTime -> TZTime
 atLatestOffset tzt =
-  case fromLocalTime (tzTimeTZInfo tzt) (tzTimeLocalTime tzt) of
+  case fromLocalTimeStrict (tzTimeTZInfo tzt) (tzTimeLocalTime tzt) of
     Left (TZOverlap _ _ latest) -> latest
     _ -> tzt
 
