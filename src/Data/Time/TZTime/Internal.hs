@@ -92,6 +92,16 @@ fromLocalTimeStrict tzi lt =
       throwError $ TZOverlap lt
         (UnsafeTZTime lt tzi namedOffset1)
         (UnsafeTZTime lt tzi namedOffset2)
+    -- Note: LTUNone means the given `LocalTime` is invalid and lands on a "gap".
+    -- The constructor contains:
+    -- 1. The `UTCTime` corresponding to the `LocalTime` shifted forward by the duration of the gap.
+    --    E.g., if it's a 1-hour gap, this will be the same as "toUTC (localTime + 1 hour)"
+    -- 2. The offset observed in that time zone before the clocks changed.
+    --
+    -- From these 2 pieces of information, we can figure out the rest.
+    --
+    -- This approach works but is inefficient.
+    -- TODO: reimplement parts of `localTimeToUTCFull` to make this more efficient.
     LTUNone utcAfter offsetBefore ->
       let
         offsetAfter = TZ.timeZoneForUTCTime (tziRules tzi) utcAfter
