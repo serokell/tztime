@@ -259,7 +259,7 @@ checkOffset offsetMaybe tzts =
 
 mkSuggestions :: NonEmpty TZTime -> String
 mkSuggestions tzts =
-  "Did you mean any of the following?" <> foldMap (\tzt -> "\n  - " <> show tzt) tzts
+  "      Did you mean any of the following?" <> foldMap (\tzt -> "\n      - " <> show tzt) tzts
 
 ----------------------------------------------------------------------------
 -- Template Haskell

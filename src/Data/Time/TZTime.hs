@@ -71,6 +71,8 @@ import Data.Time.TZTime.Internal as Internal
 
 -- $setup
 -- >>> import Data.Function ((&))
+-- >>> import Data.Time.TZTime.QQ (tz)
+-- >>> import Data.Time
 
 ----------------------------------------------------------------------------
 -- Constructors
@@ -265,11 +267,7 @@ atMidnight = atTimeOfDay midnight
 -- | Moves the date to the next given `DayOfWeek`.
 -- If the current date is already a match, then the current date is returned unmodified.
 --
--- >>> import Data.Time.TZInfo as TZ
--- >>> tz = TZ.fromLabel TZ.Europe__London
--- >>> tzt = unsafeFromLocalTime tz (LocalTime (YearMonthDay 2022 2 24) (TimeOfDay 10 0 0))
--- >>> tzt
--- 2022-02-24 10:00:00 +00:00 [Europe/London]
+-- >>> tzt = [tz|2022-02-24 10:00:00 [Europe/London]|]
 --
 -- >>> tzt & modifyLocalLenient (atFirstDayOfWeekOnAfter Thursday)
 -- 2022-02-24 10:00:00 +00:00 [Europe/London]

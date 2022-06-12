@@ -50,6 +50,15 @@ tests:
     - tztime
     - th-test-utils
 
+  tztime-doctest:
+    main: Main.hs
+    source-dirs: doctest
+    ghc-options:
+    - -threaded
+    dependencies:
+    - base
+    - doctest-parallel
+
 ghc-options:
   - -Weverything
   - -Wno-implicit-prelude

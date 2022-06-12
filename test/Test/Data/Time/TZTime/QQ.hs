@@ -43,26 +43,26 @@ unit_fails_when_time_is_valid_but_offset_is_invalid :: Assertion
 unit_fails_when_time_is_valid_but_offset_is_invalid = do
   "2022-03-04 10:15:40.123 +03:00 [Europe/Rome]" `shouldFailWith`
     [ "Invalid offset: +03:00"
-    , "Did you mean any of the following?"
-    , "  - 2022-03-04 10:15:40.123 +01:00 [Europe/Rome]"
+    , "      Did you mean any of the following?"
+    , "      - 2022-03-04 10:15:40.123 +01:00 [Europe/Rome]"
     ]
 
 unit_fails_when_time_lands_on_a_gap :: Assertion
 unit_fails_when_time_lands_on_a_gap =
   "2022-03-13 02:30:00 [America/Winnipeg]" `shouldFailWith`
     [ "Invalid time: the clocks are set forward around this time."
-    , "Did you mean any of the following?"
-    , "  - 2022-03-13 01:30:00 -06:00 [America/Winnipeg]"
-    , "  - 2022-03-13 03:30:00 -05:00 [America/Winnipeg]"
+    , "      Did you mean any of the following?"
+    , "      - 2022-03-13 01:30:00 -06:00 [America/Winnipeg]"
+    , "      - 2022-03-13 03:30:00 -05:00 [America/Winnipeg]"
     ]
 
 unit_is_ambiguous_when_time_lands_on_an_overlap :: Assertion
 unit_is_ambiguous_when_time_lands_on_an_overlap =
   "2022-11-06 01:30:00 [America/Winnipeg]" `shouldFailWith`
     [ "Ambiguous time: please specify an offset."
-    , "Did you mean any of the following?"
-    , "  - 2022-11-06 01:30:00 -05:00 [America/Winnipeg]"
-    , "  - 2022-11-06 01:30:00 -06:00 [America/Winnipeg]"
+    , "      Did you mean any of the following?"
+    , "      - 2022-11-06 01:30:00 -05:00 [America/Winnipeg]"
+    , "      - 2022-11-06 01:30:00 -06:00 [America/Winnipeg]"
     ]
 
 unit_is_not_ambiguous_when_time_lands_on_an_overlap_and_an_offset_is_specified :: Assertion
@@ -82,9 +82,9 @@ unit_fails_when_time_lands_on_an_overlap_and_the_offset_is_invalid :: Assertion
 unit_fails_when_time_lands_on_an_overlap_and_the_offset_is_invalid = do
   "2022-11-06 01:30:00 +00:00 [America/Winnipeg]" `shouldFailWith`
     [ "Invalid offset: +00:00"
-    , "Did you mean any of the following?"
-    , "  - 2022-11-06 01:30:00 -05:00 [America/Winnipeg]"
-    , "  - 2022-11-06 01:30:00 -06:00 [America/Winnipeg]"
+    , "      Did you mean any of the following?"
+    , "      - 2022-11-06 01:30:00 -05:00 [America/Winnipeg]"
+    , "      - 2022-11-06 01:30:00 -06:00 [America/Winnipeg]"
     ]
 
 unit_fails_when_theres_extra_input :: Assertion
