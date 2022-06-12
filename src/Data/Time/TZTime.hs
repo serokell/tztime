@@ -175,17 +175,44 @@ The result of the modification may be:
 modifyLocal :: MonadError TZError m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
 modifyLocal = Internal.modifyLocalTimeLine
 
-{- | Similar to `modifyLocal`, except:
+{- |
+Modifies the date/time on the local time-line.
 
-* If the result lands on a gap, shift the time forward by
-the duration of the gap.
+The result may:
 
-* If it lands on an overlap, attempt to preserve the offset of the
-original `LocalTime`.
-This ensures that @addCalendarClip (calendarDays 0) == id@.
-If this is not possible, use the earliest offset.
+* Land on a "gap", e.g. when the clocks are set forward in spring and a local time is skipped.
+  When this happens, we shift the time forward by the duration of the gap.
 
-This should be suitable for most use cases.
+    For example, on the 13th, the clocks skip one hour,
+    from 01:59 (at the -06:00 offset) straight to 03:00 (at the -05:00 offset):
+
+    >>> [tz|2022-03-12 02:15:00 -06:00 [America/Winnipeg]|] & modifyLocalLenient (addCalendarClip (calendarDays 1))
+    2022-03-13 03:15:00 -05:00 [America/Winnipeg]
+
+* Land on an "overlap", e.g. when the clocks are set back in autumn and a local time happens twice.
+  When this happens, we attempt to preserve the offset of the original `TZTime`.
+  This ensures that @modifyLocalLenient id == id@.
+  If this is not possible, use the earliest of the two offsets.
+
+    For example, on the 6th, the clocks are set back one hour,
+    from 01:59 (at the -05:00 offset) back to 01:00 (at the -06:00 offset).
+    This means the time 01:15 happens twice, first at -05:00 and then again at -06:00.
+
+    >>> [tz|2022-11-05 01:15:00 -05:00 [America/Winnipeg]|] & modifyLocalLenient (addCalendarClip (calendarDays 1))
+    2022-11-06 01:15:00 -05:00 [America/Winnipeg]
+
+    >>> [tz|2022-11-07 01:15:00 -06:00 [America/Winnipeg]|] & modifyLocalLenient (addCalendarClip (calendarDays -1))
+    2022-11-06 01:15:00 -06:00 [America/Winnipeg]
+
+This behaviour should be suitable for most use cases.
+
+Note: @modifyLocalLenient (g . f)@ may not always be equivalent to
+@modifyLocalLenient g . modifyLocalLenient f@.
+
+If @modifyLocalLenient f@ lands on a gap or an overlap, the time will be corrected as described above;
+but there's a chance @modifyLocalLenient (g . f)@ would skip right over
+the gap/overlap and no correction is needed.
+As a rule of thumb, apply all modifications to the local time-line in one go.
 
 >>> import Control.Arrow ((>>>))
 >>> :{
@@ -198,13 +225,6 @@ This should be suitable for most use cases.
 :}
 2022-05-11 00:00:00 +02:00 [Europe/Rome]
 
-Note: @modifyLocalLenient (g . f)@ may not always be equivalent to
-@modifyLocalLenient g . modifyLocalLenient f@.
-
-If @modifyLocalLenient f@ lands on a gap or an overlap, the time will be corrected as described above;
-but there's a chance @modifyLocalLenient (g . f)@ would skip right over
-the gap/overlap and no correction is needed.
-As a rule of thumb, apply all modifications to the local time-line in one go.
 -}
 modifyLocalLenient :: (LocalTime -> LocalTime) -> TZTime -> TZTime
 modifyLocalLenient f tzt =
