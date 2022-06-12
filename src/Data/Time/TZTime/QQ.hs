@@ -7,7 +7,7 @@ module Data.Time.TZTime.QQ
   ) where
 
 import Data.List.NonEmpty (NonEmpty(..))
-import Data.Time.TZTime.Internal qualified as I
+import Data.Time.TZTime.Internal as I
 import Language.Haskell.TH (Exp, Q, unTypeCode)
 import Language.Haskell.TH.Quote
 import Text.ParserCombinators.ReadP qualified as P
@@ -23,7 +23,8 @@ The offset can also be expressed using [military time zone abbreviations](https:
 and these time zones abbreviations as per RFC 822 section 5:
 \"UTC\", \"UT\", \"GMT\", \"EST\", \"EDT\", \"CST\", \"CDT\", \"MST\", \"MDT\", \"PST\", \"PDT\".
 
-Note: the time zone's rules are loaded from the embedded database using `fromIdentifier`.
+Note: the time zone's rules are loaded from the embedded database
+using `Data.Time.TZInfo.fromIdentifier`.
 
 >>> [tz|2022-03-04 10:15:40.123 [Europe/Rome]|]
 2022-03-04 10:15:40.123 +01:00 [Europe/Rome]

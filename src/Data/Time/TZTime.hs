@@ -26,7 +26,7 @@ module Data.Time.TZTime
   , atLatestOffset
   , atStartOfDay
   -- * Universal time-line
-  -- ** Adding seconds/minutes/hours
+  -- ** Adding seconds\/minutes\/hours
   , addTime
   , standardHours
   , standardMinutes
@@ -35,14 +35,16 @@ module Data.Time.TZTime
   , modifyLocal
   , modifyLocalLenient
   , modifyLocalThrow
-  -- ** Adding days/weeks/months/years.
+  -- ** Adding days\/weeks\/months\/years.
+  -- | Use these with one of the @modifyLocal*@ functions.
   , addCalendarClip
   , addCalendarRollOver
   , calendarDays
   , calendarWeeks
   , calendarMonths
   , calendarYears
-  -- * Setting date/time components.
+  -- ** Setting date\/time components.
+  -- | Use these with one of the @modifyLocal*@ functions.
   , atYear
   , atMonthOfYear
   , atDayOfMonth
@@ -66,7 +68,7 @@ import Data.Time
 import Data.Time qualified as Time
 import Data.Time.Calendar.Compat
   (DayOfMonth, MonthOfYear, Year, firstDayOfWeekOnAfter, pattern YearMonthDay)
-import Data.Time.TZInfo (getCurrentTZInfo)
+import Data.Time.TZInfo
 import Data.Time.TZTime.Internal as Internal
 
 -- $setup
@@ -78,6 +80,14 @@ import Data.Time.TZTime.Internal as Internal
 -- Constructors
 ----------------------------------------------------------------------------
 
+-- | Returns the current time with the local time zone information
+-- based on the @TZ@ and @TZDIR@ environment variables.
+--
+-- See @tzset(3)@ for details, but basically:
+--
+-- * If @TZ@ environment variable is unset, we use @\/etc\/localtime@.
+-- * If @TZ@ is set, but empty, we use `utc`.
+-- * If @TZ@ is set and not empty, we use `loadFromSystem` to read that file.
 getCurrentTZTime :: IO TZTime
 getCurrentTZTime = do
   tzi <- getCurrentTZInfo
@@ -90,6 +100,9 @@ getCurrentTZTime = do
 
 -- | If this local time happens to be on an overlap,
 -- switch to the earliest of the two offsets.
+--
+-- >>> atEarliestOffset [tz|2022-11-06 01:30:00 -06:00 [America/Winnipeg]|]
+-- 2022-11-06 01:30:00 -05:00 [America/Winnipeg]
 atEarliestOffset :: TZTime -> TZTime
 atEarliestOffset tzt =
   case fromLocalTime (tzTimeTZInfo tzt) (tzTimeLocalTime tzt) of
@@ -98,6 +111,9 @@ atEarliestOffset tzt =
 
 -- | If this local time happens to be on an overlap,
 -- switch to the latest of the two offsets.
+--
+-- >>> atLatestOffset [tz|2022-11-06 01:30:00 -05:00 [America/Winnipeg]|]
+-- 2022-11-06 01:30:00 -06:00 [America/Winnipeg]
 atLatestOffset :: TZTime -> TZTime
 atLatestOffset tzt =
   case fromLocalTime (tzTimeTZInfo tzt) (tzTimeLocalTime tzt) of
@@ -123,7 +139,11 @@ atStartOfDay tzt =
 -- Adding seconds/minutes/hours.
 ----------------------------------------------------------------------------
 
--- | Adds the given amount of seconds
+{- | Adds the given amount of seconds
+
+>>> [tz|2022-03-04 10:15:00 [Europe/Rome]|] & addTime (standardHours 2 + standardMinutes 20)
+2022-03-04 12:35:00 +01:00 [Europe/Rome]
+-}
 addTime :: NominalDiffTime -> TZTime -> TZTime
 addTime = Internal.modifyUniversalTimeLine . addUTCTime
 
@@ -142,27 +162,50 @@ standardSeconds = secondsToNominalDiffTime
 -- Local time-line.
 ----------------------------------------------------------------------------
 
--- | Modifies the date/time on the local time-line.
---
--- The result of the modification may be:
---
--- * A valid `TZTime`.
--- * Ambiguous: this usually happens when the clocks are set back in
---   autumn and a local time happens twice.
--- * Invalid: this usually happens when the clocks are set forward in
---   spring and a local time is skipped.
+{- | Modifies the date/time on the local time-line.
+
+The result of the modification may be:
+
+* A valid `TZTime`.
+* Ambiguous: this usually happens when the clocks are set back in
+  autumn and a local time happens twice.
+* Invalid: this usually happens when the clocks are set forward in
+  spring and a local time is skipped.
+-}
 modifyLocal :: MonadError TZError m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
 modifyLocal = Internal.modifyLocalTimeLine
 
--- | Similar to `modifyLocal`, except:
---
--- If the result lands on a gap, shift the time forward by
--- the duration of the gap.
---
--- If it lands on an overlap, attempt to preserve the offset of the
--- original `LocalTime`.
--- This ensures that @addCalendarClip (calendarDays 0) == id@.
--- If this is not possible, use the earliest offset.
+{- | Similar to `modifyLocal`, except:
+
+* If the result lands on a gap, shift the time forward by
+the duration of the gap.
+
+* If it lands on an overlap, attempt to preserve the offset of the
+original `LocalTime`.
+This ensures that @addCalendarClip (calendarDays 0) == id@.
+If this is not possible, use the earliest offset.
+
+This should be suitable for most use cases.
+
+>>> import Control.Arrow ((>>>))
+>>> :{
+[tz|2022-03-04 10:15:00 +01:00 [Europe/Rome]|]
+  & modifyLocalLenient (
+      addCalendarClip (calendarMonths 2 <> calendarDays 3) >>>
+      atFirstDayOfWeekOnAfter Wednesday >>>
+      atMidnight
+    )
+:}
+2022-05-11 00:00:00 +02:00 [Europe/Rome]
+
+Note: @modifyLocalLenient (g . f)@ may not always be equivalent to
+@modifyLocalLenient g . modifyLocalLenient f@.
+
+If @modifyLocalLenient f@ lands on a gap or an overlap, the time will be corrected as described above;
+but there's a chance @modifyLocalLenient (g . f)@ would skip right over
+the gap/overlap and no correction is needed.
+As a rule of thumb, apply all modifications to the local time-line in one go.
+-}
 modifyLocalLenient :: (LocalTime -> LocalTime) -> TZTime -> TZTime
 modifyLocalLenient f tzt =
   case modifyLocal f tzt of
@@ -268,10 +311,8 @@ atMidnight = atTimeOfDay midnight
 -- If the current date is already a match, then the current date is returned unmodified.
 --
 -- >>> tzt = [tz|2022-02-24 10:00:00 [Europe/London]|]
---
 -- >>> tzt & modifyLocalLenient (atFirstDayOfWeekOnAfter Thursday)
 -- 2022-02-24 10:00:00 +00:00 [Europe/London]
---
 -- >>> tzt & modifyLocalLenient (atFirstDayOfWeekOnAfter Wednesday)
 -- 2022-03-02 10:00:00 +00:00 [Europe/London]
 atFirstDayOfWeekOnAfter :: DayOfWeek -> LocalTime -> LocalTime

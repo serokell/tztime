@@ -2,6 +2,8 @@
 --
 -- SPDX-License-Identifier: MPL-2.0
 
+{-# OPTIONS_HADDOCK not-home #-}
+
 module Data.Time.TZTime.Internal where
 
 import Control.Applicative (optional)
@@ -44,6 +46,10 @@ data TZTime = UnsafeTZTime
   deriving stock (Eq, Data, Generic)
   deriving anyclass NFData
 
+{- |
+@yyyy-mm-dd hh:mm:ss[.sss] ±hh:mm [time zone]@.
+Example: @2022-03-04 02:02:01 +01:00 [Europe/Rome]@.
+-}
 instance Show TZTime where
   show (UnsafeTZTime lt tzi offset) =
     show lt <> " " <> iso8601Show offset <> " [" <> tzIdent <> "]"
