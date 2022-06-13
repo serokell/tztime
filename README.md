@@ -10,6 +10,47 @@ This package introduces:
 * The `TZTime` data type, a valid and unambiguous point in time in some time zone.
 * Functions for safely manipulating a `TZTime`.
 
+## Examples
+
+```hs
+import Control.Arrow ((>>>))
+import Data.Function ((&))
+import Data.Time
+import Data.Time.Compat
+import Data.Time.TZInfo as TZI
+import Data.Time.TZTime
+import Data.Time.TZTime.QQ (tz)
+```
+
+```hs
+λ> [tz|2022-03-04 10:15:00 +01:00 [Europe/Rome]|] & modifyLocal (
+      addCalendarClip (calendarMonths 2 <> calendarDays 3) >>>
+      atFirstDayOfWeekOnAfter Wednesday >>>
+      atMidnight
+    )
+2022-05-11 00:00:00 +02:00 [Europe/Rome]
+```
+
+In spring in Havana, the clocks turn forward from 23:59 to 01:00.
+So that day does not start at midnight, it starts at 01:00.
+
+```hs
+λ> atStartOfDay [tz|2022-03-13 10:45:00 [America/Havana]|]
+2022-03-13 01:00:00 -04:00 [America/Havana]
+```
+
+In spring in Australia/Lord_Howe, the clocks turn forward 30 minutes at 02:00.
+So 3 hours past 01:00 would actually be 04:30.
+
+```hs
+λ> :{
+  addTime (standardHours 3) $
+    fromLocalTime (TZI.fromLabel TZI.Australia__Lord_Howe) $
+      LocalTime (YearMonthDay 2022 10 2) (TimeOfDay 1 0 0)
+:}
+2022-10-02 04:30:00 +11:00 [Australia/Lord_Howe]
+```
+
 ## Motivation
 
 Note: We'll use the packages `time`, `time-compat` and `tz` for the examples below.
