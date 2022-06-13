@@ -6,8 +6,13 @@ cabal-version: 1.12
 
 name:           tztime
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/serokell/tztime#readme>
-homepage:       https://github.com/serokell/tztime#readme
+synopsis:       Safe timezone-aware handling of time.
+description:    This package introduces:
+                .
+                * The `TZTime` data type, a valid and unambiguous point in time in some time zone.
+                * Functions for safely manipulating a `TZTime`.
+category:       Time
+homepage:       https://github.com/serokell/tztime
 bug-reports:    https://github.com/serokell/tztime/issues
 author:         Serokell
 maintainer:     Serokell <hi@serokell.io>

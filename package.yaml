@@ -10,11 +10,18 @@ license-file:        LICENSE
 author:              Serokell
 maintainer:          Serokell <hi@serokell.io>
 copyright:           2022 Serokell <https://serokell.io>
+category:            Time
+homepage:            https://github.com/serokell/tztime
+bug-reports:         https://github.com/serokell/tztime/issues
+synopsis:            Safe timezone-aware handling of time.
+description: |
+  This package introduces:
+
+  * The `TZTime` data type, a valid and unambiguous point in time in some time zone.
+  * Functions for safely manipulating a `TZTime`.
 
 extra-source-files:
 - README.md
-
-description:         Please see the README on GitHub at <https://github.com/serokell/tztime#readme>
 
 library:
   source-dirs: src

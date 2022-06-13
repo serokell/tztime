@@ -8,5 +8,3 @@ packages:
 
 allow-older: *
 allow-newer: *
-
-write-ghc-environment-files: always
