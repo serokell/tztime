@@ -20,6 +20,10 @@ copyright:      2022 Serokell <https://serokell.io>
 license:        MPL-2.0
 license-file:   LICENSE
 build-type:     Simple
+tested-with:
+    GHC == 8.10.7
+  , GHC == 9.0.2
+  , GHC == 9.2.2
 extra-source-files:
     README.md
 

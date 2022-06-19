@@ -1,0 +1,13 @@
+-- Sadly we can't pass `--ghc-options=-Werror` to `cabal build`
+-- because it applies it to dependencies as well.
+-- See: https://github.com/haskell/cabal/issues/3883
+-- So we need this file.
+--
+-- This should be fixed in cabal >3.8
+-- https://github.com/haskell/cabal/pull/7973
+
+packages:
+  ./
+
+package tztime
+  ghc-options: -Werror

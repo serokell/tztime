@@ -25,7 +25,7 @@ clean:
 	$(MAKE_PACKAGE) clean
 
 stylish:
-	find . -name '.stack-work' -prune -o -name '.dist-newstyle' -prune -o -name '*.hs' -exec stylish-haskell -i '{}' \;
+	find . -name '.stack-work' -prune -a -name 'dist-newstyle' -prune -o -name '*.hs' | xargs stylish-haskell -i
 
 lint:
 	hlint .
