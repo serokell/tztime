@@ -97,7 +97,7 @@ library
     , filepath
     , mtl
     , safe-exceptions
-    , template-haskell
+    , template-haskell >=2.16.0.0
     , text
     , time
     , time-compat

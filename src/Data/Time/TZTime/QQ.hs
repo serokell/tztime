@@ -2,15 +2,23 @@
 --
 -- SPDX-License-Identifier: MPL-2.0
 
+{-# LANGUAGE CPP #-}
+
 module Data.Time.TZTime.QQ
   ( tz
   ) where
 
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Time.TZTime.Internal as I
-import Language.Haskell.TH (Exp, Q, unTypeCode)
+import Language.Haskell.TH (Exp, Q)
 import Language.Haskell.TH.Quote
 import Text.ParserCombinators.ReadP qualified as P
+
+#if MIN_VERSION_template_haskell(2,17,0)
+import Language.Haskell.TH.Syntax (unTypeCode)
+#else
+import Language.Haskell.TH.Syntax (unType)
+#endif
 
 {- |
 Quasiquoter for parsing a `TZTime` at compile-time in the format:
@@ -50,5 +58,13 @@ tz = QuasiQuoter
     qexp input = do
       (lt, offsetMaybe, ident) <- I.readP_to_Q input (I.readComponentsP <* P.skipSpaces)
       I.getValidTZTimes lt ident >>= I.checkOffset offsetMaybe >>= \case
-        tzt :| [] -> unTypeCode $ I.liftTZTime tzt
+        tzt :| [] -> toExp tzt
         tzts -> fail $ "Ambiguous time: please specify an offset.\n" <> I.mkSuggestions tzts
+
+    toExp :: TZTime -> Q Exp
+    toExp tzt =
+#if MIN_VERSION_template_haskell(2,17,0)
+      unTypeCode $ I.liftTZTime tzt
+#else
+      unType <$> I.liftTZTime tzt
+#endif

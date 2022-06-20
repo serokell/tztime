@@ -4,6 +4,8 @@
 
 {-# OPTIONS_HADDOCK not-home #-}
 
+{-# LANGUAGE CPP #-}
+
 module Data.Time.TZTime.Internal where
 
 import Control.Applicative (optional)
@@ -29,9 +31,14 @@ import Data.Time.Zones (LocalToUTCResult(..))
 import Data.Time.Zones qualified as TZ
 import GHC.Generics (Generic)
 import GHC.Stack (HasCallStack)
-import Language.Haskell.TH.Syntax (Code, Q, Quote)
 import Text.ParserCombinators.ReadP (ReadP)
 import Text.ParserCombinators.ReadP qualified as P
+
+#if MIN_VERSION_template_haskell(2,17,0)
+import Language.Haskell.TH.Syntax (Code, Q, Quote)
+#else
+import Language.Haskell.TH.Syntax (Q, TExp)
+#endif
 
 ----------------------------------------------------------------------------
 -- TZTime
@@ -290,9 +297,18 @@ readP_to_Q input parser =
     [(res, _)] -> pure res
     _ -> fail $ "Parsing is ambiguous: '" <> input <> "'"
 
+#if MIN_VERSION_template_haskell(2,17,0)
+liftTZTime :: Quote m => TZTime -> Code m TZTime
+liftLocalTime :: Quote m => LocalTime -> Code m LocalTime
+liftTimeZone :: Quote m => Time.TimeZone -> Code m Time.TimeZone
+#else
+liftTZTime :: TZTime -> Q (TExp TZTime)
+liftTimeZone :: Time.TimeZone -> Q (TExp Time.TimeZone)
+liftLocalTime :: LocalTime -> Q (TExp LocalTime)
+#endif
+
 -- | NOTE: this assumes the time zone identifier used to construct `TZTime` exists in the
 -- embedded time zone database, i.e. it can be loaded using `fromIdentifier`.
-liftTZTime :: Quote m => TZTime -> Code m TZTime
 liftTZTime tzt =
   [e||
     UnsafeTZTime
@@ -303,10 +319,8 @@ liftTZTime tzt =
   where
     ident = tziIdentifier $ tzTimeTZInfo tzt
 
-liftLocalTime :: Quote m => LocalTime -> Code m LocalTime
 liftLocalTime (LocalTime (YearMonthDay yy mm dd) (TimeOfDay hh mmm (MkFixed ss))) =
   [e|| (LocalTime (YearMonthDay yy mm dd) (TimeOfDay hh mmm (MkFixed ss))) ||]
 
-liftTimeZone :: Quote m => Time.TimeZone -> Code m Time.TimeZone
 liftTimeZone (TimeZone tzMins tzSummer tzName) =
   [e|| TimeZone tzMins tzSummer tzName ||]
