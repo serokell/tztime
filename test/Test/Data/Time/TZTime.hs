@@ -8,7 +8,7 @@ module Test.Data.Time.TZTime where
 
 import Control.Arrow ((>>>))
 import Data.Function ((&))
-import Data.Time
+import Data.Time (DayOfWeek(..), LocalTime(..), TimeOfDay(..), TimeZone(..))
 import Data.Time.Calendar.Compat (pattern YearMonthDay)
 import Data.Time.TZInfo as TZI
 import Data.Time.TZTime as TZT

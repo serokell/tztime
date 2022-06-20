@@ -34,11 +34,14 @@ import GHC.Stack (HasCallStack)
 import Text.ParserCombinators.ReadP (ReadP)
 import Text.ParserCombinators.ReadP qualified as P
 
+import Language.Haskell.TH.Syntax (Q, liftTyped)
 #if MIN_VERSION_template_haskell(2,17,0)
-import Language.Haskell.TH.Syntax (Code, Q, Quote)
+import Language.Haskell.TH.Syntax (Code, Quote)
 #else
-import Language.Haskell.TH.Syntax (Q, TExp)
+import Language.Haskell.TH.Syntax (TExp)
 #endif
+
+{-# ANN module ("HLint: ignore Use fewer imports" :: String) #-}
 
 ----------------------------------------------------------------------------
 -- TZTime
@@ -313,14 +316,18 @@ liftTZTime tzt =
   [e||
     UnsafeTZTime
       $$(liftLocalTime $ tzTimeLocalTime tzt)
-      (fromJust $ fromIdentifier ident)
+      (fromJust $ fromIdentifier $$(liftTyped ident))
       $$(liftTimeZone $ tzTimeOffset tzt)
   ||]
   where
     ident = tziIdentifier $ tzTimeTZInfo tzt
 
 liftLocalTime (LocalTime (YearMonthDay yy mm dd) (TimeOfDay hh mmm (MkFixed ss))) =
-  [e|| (LocalTime (YearMonthDay yy mm dd) (TimeOfDay hh mmm (MkFixed ss))) ||]
+  [e||
+    LocalTime
+      (YearMonthDay $$(liftTyped yy) $$(liftTyped mm) $$(liftTyped dd))
+      (TimeOfDay $$(liftTyped hh) $$(liftTyped mmm) (MkFixed $$(liftTyped ss)))
+  ||]
 
 liftTimeZone (TimeZone tzMins tzSummer tzName) =
-  [e|| TimeZone tzMins tzSummer tzName ||]
+  [e|| TimeZone $$(liftTyped tzMins) $$(liftTyped tzSummer) $$(liftTyped tzName) ||]

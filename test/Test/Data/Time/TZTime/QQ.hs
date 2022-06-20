@@ -5,7 +5,7 @@
 module Test.Data.Time.TZTime.QQ where
 
 import Data.List (intercalate)
-import Data.Time
+import Data.Time (LocalTime(..), TimeOfDay(..), TimeZone)
 import Data.Time.Calendar.Compat (pattern YearMonthDay)
 import Data.Time.TZInfo as TZI
 import Data.Time.TZTime as TZT

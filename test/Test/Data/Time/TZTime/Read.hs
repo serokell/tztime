@@ -5,7 +5,7 @@
 module Test.Data.Time.TZTime.Read where
 
 import Data.Functor ((<&>))
-import Data.Time
+import Data.Time (LocalTime(..), TimeOfDay(..), TimeZone)
 import Data.Time.Calendar.Compat (pattern YearMonthDay)
 import Data.Time.TZInfo as TZI
 import Data.Time.TZTime as TZT
