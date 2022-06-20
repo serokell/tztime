@@ -34,9 +34,9 @@ library:
   - safe-exceptions
   - template-haskell >= 2.16.0.0
   - text
-  - time
-  - time-compat
-  - tz
+  - time >= 1.9.2
+  - time-compat >= 1.9.4
+  - tz >= 0.1.3.4
 
 tests:
   tztime-test:
