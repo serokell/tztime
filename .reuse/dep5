@@ -4,6 +4,5 @@ Files: .github/pull_request_template.md .github/ISSUE_TEMPLATE/*.md
        cabal.project cabal.project.freeze
        tztime.cabal
        stack.yaml.lock stack.min.yaml.lock
-       nix/sources.json nix/sources.nix
 Copyright: 2022 Serokell <https://serokell.io>
 License: MPL-2.0
