@@ -222,18 +222,18 @@ unit_addTime_and_diffTZTime_operate_on_the_universal_time_line = do
   let tz = TZI.fromLabel TZI.America__Winnipeg
   let tzt = unsafeFromLocalTime tz local
 
-  addTime (standardHours 1) tzt @?=
+  addTime (hours 1) tzt @?=
     UnsafeTZTime (LocalTime (YearMonthDay 2022 11 6) (TimeOfDay 1 30 0)) tz cdt
 
-  addTime (standardHours 2) tzt @?=
+  addTime (hours 2) tzt @?=
     UnsafeTZTime (LocalTime (YearMonthDay 2022 11 6) (TimeOfDay 1 30 0)) tz cst
 
-  addTime (standardHours 3) tzt @?=
+  addTime (hours 3) tzt @?=
     UnsafeTZTime (LocalTime (YearMonthDay 2022 11 6) (TimeOfDay 2 30 0)) tz cst
 
-  diffTZTime (addTime (standardHours 1) tzt) tzt @?= standardHours 1
-  diffTZTime (addTime (standardHours 2) tzt) tzt @?= standardHours 2
-  diffTZTime (addTime (standardHours 3) tzt) tzt @?= standardHours 3
+  diffTZTime (addTime (hours 1) tzt) tzt @?= hours 1
+  diffTZTime (addTime (hours 2) tzt) tzt @?= hours 2
+  diffTZTime (addTime (hours 3) tzt) tzt @?= hours 3
 
 unit_composing_modifiers :: Assertion
 unit_composing_modifiers = do
@@ -248,7 +248,7 @@ unit_composing_modifiers = do
               >>> atMidnight
             )
           & atEarliestOffset
-          & addTime (standardMinutes 1 + standardSeconds 20)
+          & addTime (minutes 1 + seconds 20)
 
   result @?= unsafeFromLocalTime tz
     (LocalTime (YearMonthDay 2023 1 11) (TimeOfDay 0 1 20))

@@ -44,7 +44,7 @@ So 3 hours past 01:00 would actually be 04:30.
 
 ```hs
 λ> :{
-  addTime (standardHours 3) $
+  addTime (hours 3) $
     fromLocalTime (TZI.fromLabel TZI.Australia__Lord_Howe) $
       LocalTime (YearMonthDay 2022 10 2) (TimeOfDay 1 0 0)
 :}
@@ -173,7 +173,7 @@ Here's how you'd do the above using `tztime`:
 
 ```hs
 λ> t1 = [tz|2022-11-06 00:30:00 [America/Winnipeg]|]
-λ> t2 = addTime (standardHours 4) t1
+λ> t2 = addTime (hours 4) t1
 λ> t2
 2022-11-06 03:30:00 -06:00 [America/Winnipeg]
 

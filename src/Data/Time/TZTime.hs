@@ -30,9 +30,9 @@ module Data.Time.TZTime
   -- * Universal time-line
   -- ** Adding seconds\/minutes\/hours
   , addTime
-  , standardHours
-  , standardMinutes
-  , standardSeconds
+  , hours
+  , minutes
+  , seconds
   -- * Local time-line
   , modifyLocal
   , modifyLocalStrict
@@ -143,22 +143,22 @@ atStartOfDay tzt =
 
 {- | Adds the given amount of seconds
 
->>> [tz|2022-03-04 10:15:00 [Europe/Rome]|] & addTime (standardHours 2 + standardMinutes 20)
+>>> [tz|2022-03-04 10:15:00 [Europe/Rome]|] & addTime (hours 2 + minutes 20)
 2022-03-04 12:35:00 +01:00 [Europe/Rome]
 -}
 addTime :: NominalDiffTime -> TZTime -> TZTime
 addTime = Internal.modifyUniversalTimeLine . addUTCTime
 
 -- | A standard hour of 3600 seconds.
-standardHours :: Pico -> NominalDiffTime
-standardHours h = standardMinutes (h * 60)
+hours :: Pico -> NominalDiffTime
+hours h = minutes (h * 60)
 
 -- | A standard minute of 60 seconds.
-standardMinutes :: Pico -> NominalDiffTime
-standardMinutes m = standardSeconds (m * 60)
+minutes :: Pico -> NominalDiffTime
+minutes m = seconds (m * 60)
 
-standardSeconds :: Pico -> NominalDiffTime
-standardSeconds = secondsToNominalDiffTime
+seconds :: Pico -> NominalDiffTime
+seconds = secondsToNominalDiffTime
 
 ----------------------------------------------------------------------------
 -- Local time-line.
