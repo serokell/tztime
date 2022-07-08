@@ -29,8 +29,3 @@ stylish:
 
 lint:
 	hlint .
-
-all:
-	$(MAKEU) PACKAGE=""
-test-all:
-	$(MAKEU) test PACKAGE=""
