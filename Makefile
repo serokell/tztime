@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-.PHONY: tztime test haddock haddock-no-deps stylish lint clean all
+.PHONY: tztime test haddock haddock-no-deps stylish lint clean all doctest test-unit
 
 # Build target from the common utility Makefile
 MAKEU = $(MAKE) -C make/
@@ -12,11 +12,8 @@ MAKE_PACKAGE = $(MAKEU) PACKAGE=tztime
 tztime:
 	$(MAKE_PACKAGE) dev
 test:
-	$(MAKE_PACKAGE) test
-test-dumb-term:
-	$(MAKE_PACKAGE) test-dumb-term
-test-hide-successes:
-	$(MAKE_PACKAGE) test-hide-successes
+	make test-unit
+	make doctest
 haddock:
 	$(MAKE_PACKAGE) haddock
 haddock-no-deps:
@@ -29,3 +26,13 @@ stylish:
 
 lint:
 	hlint .
+
+
+####################################
+# Individual test suites
+
+doctest:
+	stack test --fast tztime:test:tztime-doctest --test-arguments "$(DOCTEST_ARGUMENTS)"
+
+test-unit:
+	$(MAKEU) test PACKAGE="tztime:test:tztime-test"
