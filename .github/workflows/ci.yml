@@ -9,11 +9,10 @@
 
 name: CI
 
-# Trigger the workflow on push or pull request, but only for the master branch
+# Trigger the workflow on push or pull request
 on:
   pull_request:
   push:
-    branches: [master]
 
 jobs:
   xrefcheck:
@@ -95,7 +94,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/master'
 
     - uses: haskell/actions/setup@v1.2
       id: setup-haskell-cabal
@@ -139,7 +137,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/master'
 
     - uses: haskell/actions/setup@v1.2
       name: Setup Haskell Stack

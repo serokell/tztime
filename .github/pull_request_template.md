@@ -43,11 +43,11 @@ you must be able to justify that.
 
 - Documentation
   - [ ] I checked whether I should update the docs and did so if necessary:
-    - [README](../tree/master/README.md)
+    - [README](../tree/main/README.md)
     - Haddock
 
 
 #### Stylistic guide (mandatory)
 
 - [ ] My commits comply with [the policy used in Serokell](https://www.notion.so/serokell/Where-and-how-to-commit-your-work-58f8973a4b3142c8abbd2e6fd5b3a08e).
-- [ ] My code complies with the [style guide](../tree/master/docs/code-style.md).
+- [ ] My code complies with the [style guide](../tree/main/docs/code-style.md).
