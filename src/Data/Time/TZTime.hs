@@ -12,6 +12,7 @@ module Data.Time.TZTime
   -- * Constructors
   , getCurrentTZTime
   , Internal.fromUTC
+  , Internal.fromPOSIXTime
   , Internal.fromLocalTime
   , Internal.fromLocalTimeStrict
   , Internal.fromLocalTimeThrow
@@ -19,6 +20,7 @@ module Data.Time.TZTime
   , Internal.TZError(..)
   -- * Conversions
   , Internal.toUTC
+  , Internal.toPOSIXTime
   , Internal.toZonedTime
   , Internal.inTZ
   -- * Modifying a TZTime

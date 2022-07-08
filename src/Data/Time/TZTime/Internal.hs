@@ -23,6 +23,7 @@ import Data.String (fromString)
 import Data.Text qualified as T
 import Data.Time (UTCTime, addUTCTime, secondsToNominalDiffTime)
 import Data.Time qualified as Time
+import Data.Time.Clock.POSIX (POSIXTime, posixSecondsToUTCTime, utcTimeToPOSIXSeconds)
 import Data.Time.Compat (pattern YearMonthDay)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.Time.LocalTime
@@ -91,6 +92,10 @@ fromUTC tzi utct =
     , tztOffset = TZ.timeZoneForUTCTime (tziRules tzi) utct
     }
 
+-- | Converts a `POSIXTime` to the given time zone.
+fromPOSIXTime :: TZInfo -> POSIXTime -> TZTime
+fromPOSIXTime tzi = fromUTC tzi . posixSecondsToUTCTime
+
 -- | Similar to `fromLocalTime`, but returns a `TZError`
 -- if the local time is ambiguous/invalid.
 fromLocalTimeStrict :: MonadError TZError m => TZInfo -> LocalTime -> m TZTime
@@ -158,6 +163,10 @@ unsafeFromLocalTime tzi lt =
 toUTC :: TZTime -> UTCTime
 toUTC tzt =
   localTimeToUTC (tzTimeOffset tzt) (tzTimeLocalTime tzt)
+
+-- | Converts this moment in time to a POSIX timestamp.
+toPOSIXTime :: TZTime -> POSIXTime
+toPOSIXTime = utcTimeToPOSIXSeconds . toUTC
 
 -- | Converts this moment in time to a `ZonedTime` (discarding time zone rules).
 toZonedTime :: TZTime -> ZonedTime
