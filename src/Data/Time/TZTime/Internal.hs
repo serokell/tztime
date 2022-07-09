@@ -97,6 +97,48 @@ fromUTC tzi utct =
 fromPOSIXTime :: TZInfo -> POSIXTime -> TZTime
 fromPOSIXTime tzi = fromUTC tzi . posixSecondsToUTCTime
 
+-- | Attempted to construct a `TZTime` from an invalid or ambiguous `LocalTime`.
+data TZError
+  = TZOverlap
+      LocalTime
+      -- ^ The `LocalTime` is ambiguous.
+      -- This usually happens when the clocks are set back in
+      -- autumn and a local time happens twice.
+      ~TZTime -- ^ The first occurrence of the given `LocalTime`, at the earliest offset.
+      ~TZTime -- ^ The second occurrence of the given `LocalTime`, at the latest offset.
+  | TZGap
+      LocalTime
+      -- ^ The `LocalTime` is invalid.
+      -- This usually happens when the clocks are set forward in
+      -- spring and a local time is skipped.
+      ~TZTime -- ^ The given `LocalTime` adjusted back by the length of the gap.
+      ~TZTime -- ^ The given `LocalTime` adjusted forward by the length of the gap.
+  deriving stock (Eq, Data, Generic)
+  deriving anyclass (NFData)
+
+instance Show TZError where
+  show = displayException
+
+instance Exception TZError where
+  displayException = \case
+    TZGap lt tzt1 _ ->
+      "The local time "
+      <> show lt
+      <> " is invalid in the time zone "
+      <> show (tziIdentifier $ tztTZInfo tzt1)
+      <> "."
+    TZOverlap lt tzt1 tzt2 ->
+      "The local time "
+      <> show lt
+      <> " is ambiguous in the time zone "
+      <> show (tziIdentifier $ tztTZInfo tzt1)
+      <> ": it is observed at the offsets '"
+      <> iso8601Show (tzTimeOffset tzt1)
+      <> "' and '"
+      <> iso8601Show (tzTimeOffset tzt2)
+      <> "'."
+
+
 -- | Similar to `fromLocalTime`, but returns a `TZError`
 -- if the local time is ambiguous/invalid.
 fromLocalTimeStrict :: MonadError TZError m => TZInfo -> LocalTime -> m TZTime
@@ -279,47 +321,6 @@ modifyUniversalTimeLine f tzt =
 modifyLocalTimeLine :: MonadError TZError m => (LocalTime -> LocalTime) -> TZTime -> m TZTime
 modifyLocalTimeLine f tzt =
   fromLocalTimeStrict (tzTimeTZInfo tzt) . f . tzTimeLocalTime $ tzt
-
--- | Attempted to construct a `TZTime` from an invalid or ambiguous `LocalTime`.
-data TZError
-  = TZOverlap
-      LocalTime
-      -- ^ The `LocalTime` is ambiguous.
-      -- This usually happens when the clocks are set back in
-      -- autumn and a local time happens twice.
-      ~TZTime -- ^ The first occurrence of the given `LocalTime`, at the earliest offset.
-      ~TZTime -- ^ The second occurrence of the given `LocalTime`, at the latest offset.
-  | TZGap
-      LocalTime
-      -- ^ The `LocalTime` is invalid.
-      -- This usually happens when the clocks are set forward in
-      -- spring and a local time is skipped.
-      ~TZTime -- ^ The given `LocalTime` adjusted back by the length of the gap.
-      ~TZTime -- ^ The given `LocalTime` adjusted forward by the length of the gap.
-  deriving stock (Eq, Data, Generic)
-  deriving anyclass (NFData)
-
-instance Show TZError where
-  show = displayException
-
-instance Exception TZError where
-  displayException = \case
-    TZGap lt tzt1 _ ->
-      "The local time "
-      <> show lt
-      <> " is invalid in the time zone "
-      <> show (tziIdentifier $ tztTZInfo tzt1)
-      <> "."
-    TZOverlap lt tzt1 tzt2 ->
-      "The local time "
-      <> show lt
-      <> " is ambiguous in the time zone "
-      <> show (tziIdentifier $ tztTZInfo tzt1)
-      <> ": it is observed at the offsets '"
-      <> iso8601Show (tzTimeOffset tzt1)
-      <> "' and '"
-      <> iso8601Show (tzTimeOffset tzt2)
-      <> "'."
 
 ----------------------------------------------------------------------------
 -- Parsing
