@@ -57,7 +57,7 @@ tz = QuasiQuoter
     qexp :: String -> Q Exp
     qexp input = do
       (lt, offsetMaybe, ident) <- I.readP_to_Q input (I.readComponentsP <* P.skipSpaces)
-      I.getValidTZTimes lt offsetMaybe ident >>= \case
+      I.getValidTZTimes lt ident >>= I.checkOffset offsetMaybe >>= \case
         tzt :| [] -> toExp tzt
         tzts -> fail $ "Ambiguous time: please specify an offset.\n" <> I.mkSuggestions tzts
 

@@ -13,18 +13,13 @@ module Data.Time.TZTime
   , getCurrentTZTime
   , Internal.fromUTC
   , Internal.fromPOSIXTime
+  , Internal.fromZonedTime
   -- ** From @LocalTime@
   , Internal.fromLocalTime
   , Internal.fromLocalTimeStrict
   , Internal.fromLocalTimeThrow
   , Internal.unsafeFromLocalTime
   , Internal.TZError(..)
-  -- ** From @ZonedTime@
-  , Internal.fromZonedTime
-  , Internal.fromZonedTimeStrict
-  , Internal.fromZonedTimeThrow
-  , Internal.unsafeFromZonedTime
-  , Internal.TZOffsetError(..)
   -- * Conversions
   , Internal.toUTC
   , Internal.toPOSIXTime

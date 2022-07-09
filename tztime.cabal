@@ -179,7 +179,6 @@ test-suite tztime-test
   other-modules:
       Test.Data.Time.TZTime
       Test.Data.Time.TZTime.FromLocalTime
-      Test.Data.Time.TZTime.FromZonedTime
       Test.Data.Time.TZTime.QQ
       Test.Data.Time.TZTime.Read
       Test.Data.Time.TZTime.Show
