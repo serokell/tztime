@@ -132,11 +132,11 @@ instance Exception TZError where
       <> show lt
       <> " is ambiguous in the time zone "
       <> show (tziIdentifier $ tztTZInfo tzt1)
-      <> ": it is observed at the offsets '"
+      <> ": it is observed at the offsets "
       <> iso8601Show (tzTimeOffset tzt1)
-      <> "' and '"
+      <> " and "
       <> iso8601Show (tzTimeOffset tzt2)
-      <> "'."
+      <> "."
 
 
 -- | Similar to `fromLocalTime`, but returns a `TZError`
@@ -231,7 +231,7 @@ instance Exception TZOffsetError where
       <> iso8601Show (minutesToTimeZone offset)
       <> " in the time zone "
       <> show (tziIdentifier $ tztTZInfo $ NE.head tzts)
-      <> ". Valid offsets are: "
+      <> ". Valid offsets: "
       <> validOffsets
       <> "."
       where

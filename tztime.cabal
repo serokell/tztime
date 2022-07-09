@@ -182,6 +182,8 @@ test-suite tztime-test
       Test.Data.Time.TZTime.FromZonedTime
       Test.Data.Time.TZTime.QQ
       Test.Data.Time.TZTime.Read
+      Test.Data.Time.TZTime.Show
+      Test.Utils
       Tree
       Paths_tztime
   hs-source-dirs:

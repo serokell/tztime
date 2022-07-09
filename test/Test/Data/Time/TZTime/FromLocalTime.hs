@@ -11,12 +11,7 @@ import Data.Time.TZTime as TZT
 import Data.Time.TZTime.Internal (TZTime(UnsafeTZTime))
 import Test.Tasty (TestTree)
 import Test.Tasty.HUnit
-
-cst :: TimeZone
-cst = read "CST"
-
-cdt :: TimeZone
-cdt = read "CDT"
+import Test.Utils
 
 unit_fromLocalTimeStrict_at_gaps :: Assertion
 unit_fromLocalTimeStrict_at_gaps = do
