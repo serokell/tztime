@@ -168,7 +168,7 @@ data TZOffsetError
       -- ^ The given offset (in minutes).
       (NonEmpty TZTime)
       -- ^ A list of all the valid offsets at which the given `LocalTime` occurred.
-  deriving stock (Eq, Generic)
+  deriving stock (Eq, Data, Generic)
   deriving anyclass (NFData)
 
 instance Show TZOffsetError where
@@ -296,7 +296,7 @@ data TZError
       -- spring and a local time is skipped.
       ~TZTime -- ^ The given `LocalTime` adjusted back by the length of the gap.
       ~TZTime -- ^ The given `LocalTime` adjusted forward by the length of the gap.
-  deriving stock (Eq, Generic)
+  deriving stock (Eq, Data, Generic)
   deriving anyclass (NFData)
 
 instance Show TZError where
