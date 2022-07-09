@@ -342,7 +342,7 @@ Note: the time zone's rules are loaded from the embedded database using `fromIde
 instance Read TZTime where
   readsPrec _ input = do
     ((lt, offsetMaybe, ident), input) <- P.readP_to_S readComponentsP input
-    case getValidTZTimes lt ident >>= checkOffset offsetMaybe of
+    case getValidTZTimes lt offsetMaybe ident of
       Nothing -> []
       Just (tzt :| []) -> [(tzt, input)]
       Just (tzts) -> NE.toList tzts <&> \tzt -> (tzt, input)
@@ -361,29 +361,30 @@ readTZIdentP = do
   fromString @TZIdentifier <$> P.manyTill P.get (P.char ']')
 
 -- | Try to construct a `TZTime` from the given components.
-getValidTZTimes :: MonadFail m => LocalTime -> TZIdentifier -> m (NonEmpty TZTime)
-getValidTZTimes lt ident = do
+getValidTZTimes
+  :: forall m. MonadFail m
+  => LocalTime -> Maybe Time.TimeZone -> TZIdentifier -> m (NonEmpty TZTime)
+getValidTZTimes lt offsetMaybe ident = do
   tzi <- case fromIdentifier ident of
     Nothing -> fail $ "Unknown time zone: '" <> T.unpack (unTZIdentifier ident) <> "'"
     Just tzi -> pure tzi
-  case fromLocalTimeStrict tzi lt of
-    Right tzt -> pure $ tzt :| []
-    Left (TZOverlap _ tzt1 tzt2) -> pure $ tzt1 :| [tzt2]
-    Left (TZGap _ tzt1 tzt2) ->
-      fail $ "Invalid time: the clocks are set forward around this time.\n" <> mkSuggestions (tzt1 :| [tzt2])
 
--- | If the user specified an offset, check that it matches at least one of the valid `TZTime`s.
-checkOffset :: MonadFail m => Maybe Time.TimeZone -> NonEmpty TZTime -> m (NonEmpty TZTime)
-checkOffset offsetMaybe tzts =
   case offsetMaybe of
-    Nothing -> pure tzts
+    Nothing ->
+      case fromLocalTimeStrict tzi lt of
+        Right tzt -> pure $ tzt :| []
+        Left (TZGap _ before after) -> handleGap before after
+        Left (TZOverlap _ earliest latest) -> pure $ earliest :| [latest]
     Just offset ->
-      tzts
-        & NE.filter (\tzt -> timeZoneMinutes offset == timeZoneMinutes (tzTimeOffset tzt))
-        & NE.nonEmpty
-        & \case
-            Just validTzts -> pure validTzts
-            Nothing -> fail $ "Invalid offset: " <> iso8601Show offset <> "\n" <> mkSuggestions tzts
+      case fromZonedTimeStrict tzi (ZonedTime lt offset) of
+        Right tzt -> pure $ tzt :| []
+        Left (TZOGap _ before after) -> handleGap before after
+        Left (TZOInvalidOffset _ _ tzts) ->
+          fail $ "Invalid offset: " <> iso8601Show offset <> "\n" <> mkSuggestions tzts
+  where
+    handleGap :: TZTime -> TZTime -> m a
+    handleGap before after =
+      fail $ "Invalid time: the clocks are set forward around this time.\n" <> mkSuggestions (before :| [after])
 
 mkSuggestions :: NonEmpty TZTime -> String
 mkSuggestions tzts =
