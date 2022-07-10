@@ -27,7 +27,7 @@ import Data.Time.Clock.POSIX (POSIXTime, posixSecondsToUTCTime, utcTimeToPOSIXSe
 import Data.Time.Compat (pattern YearMonthDay)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.Time.LocalTime
-import Data.Time.TZInfo (TZIdentifier(..), TZInfo(..), fromIdentifier)
+import Data.Time.TZInfo (TZIdentifier, TZInfo(..), fromIdentifier)
 import Data.Time.Zones (LocalToUTCResult(..))
 import Data.Time.Zones qualified as TZ
 import GHC.Generics (Generic)
@@ -65,7 +65,7 @@ instance Show TZTime where
   show (UnsafeTZTime lt tzi offset) =
     show lt <> " " <> iso8601Show offset <> " [" <> tzIdent <> "]"
     where
-      tzIdent = T.unpack $ unTZIdentifier $ tziIdentifier tzi
+      tzIdent = T.unpack $ tziIdentifier tzi
 
 -- | The local time of this `TZTime`.
 tzTimeLocalTime :: TZTime -> LocalTime
@@ -277,7 +277,7 @@ readTZIdentP = do
 getValidTZTimes :: MonadFail m => LocalTime -> TZIdentifier -> m (NonEmpty TZTime)
 getValidTZTimes lt ident = do
   tzi <- case fromIdentifier ident of
-    Nothing -> fail $ "Unknown time zone: '" <> T.unpack (unTZIdentifier ident) <> "'"
+    Nothing -> fail $ "Unknown time zone: '" <> T.unpack ident <> "'"
     Just tzi -> pure tzi
   case fromLocalTimeStrict tzi lt of
     Right tzt -> pure $ tzt :| []

@@ -4,7 +4,7 @@
 
 module Data.Time.TZInfo
   ( TZInfo(..)
-  , TZIdentifier(..)
+  , TZIdentifier
   , utc
   -- * System's time zone database
   , loadFromSystem
@@ -20,7 +20,7 @@ module Data.Time.TZInfo
 
 import Control.DeepSeq (NFData)
 import Data.Data (Data)
-import Data.String (IsString, fromString)
+import Data.String (fromString)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
@@ -29,7 +29,6 @@ import Data.Time.Zones qualified as TZ
 import Data.Time.Zones.All (TZLabel)
 import Data.Time.Zones.All qualified as TZ
 import GHC.Generics (Generic)
-import Language.Haskell.TH.Syntax (Lift)
 import System.Directory (getSymbolicLinkTarget)
 import System.Environment (lookupEnv)
 import System.FilePath (makeRelative)
@@ -66,10 +65,7 @@ data TZInfo = TZInfo
   deriving anyclass NFData
 
 -- | A time zone's identifier, e.g. @Europe/Paris@.
-newtype TZIdentifier = TZIdentifier { unTZIdentifier :: Text }
-  deriving newtype (Eq, Show, Ord, IsString)
-  deriving stock (Data, Generic, Lift)
-  deriving anyclass NFData
+type TZIdentifier = Text
 
 -- | The UTC time zone.
 utc :: TZInfo
@@ -90,7 +86,7 @@ utc = TZInfo "UTC" TZ.utcTZ
 -- Throws an `Control.Exception.IOException` if the identifier is not found.
 loadFromSystem :: TZIdentifier -> IO TZInfo
 loadFromSystem ident =
-  TZInfo ident <$> TZ.loadSystemTZ (T.unpack $ unTZIdentifier ident)
+  TZInfo ident <$> TZ.loadSystemTZ (T.unpack ident)
 
 -- | Reads and parses a time zone information file (in @tzfile(5)@
 -- aka. Olson file format).
@@ -124,14 +120,14 @@ getCurrentTZInfo =
 -- | Look up a time zone in the @tzdata@'s embedded database.
 fromIdentifier :: TZIdentifier -> Maybe TZInfo
 fromIdentifier ident =
-  TZInfo ident <$> TZ.tzByName (T.encodeUtf8 $ unTZIdentifier ident)
+  TZInfo ident <$> TZ.tzByName (T.encodeUtf8 ident)
 
 -- | Retrieves the time zone info for a "canonical" time zone
 -- from @tzdata@'s embedded database.
 fromLabel :: TZLabel -> TZInfo
 fromLabel label =
   TZInfo
-    (TZIdentifier (T.decodeUtf8 $ TZ.toTZName label))
+    (T.decodeUtf8 $ TZ.toTZName label)
     (TZ.tzByLabel label)
 
 {- $tzlabel

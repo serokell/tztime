@@ -84,6 +84,7 @@ library
       RecursiveDo
       ScopedTypeVariables
       StandaloneDeriving
+      StandaloneKindSignatures
       StrictData
       TemplateHaskell
       TupleSections
@@ -106,6 +107,8 @@ library
     , time >=1.9.2
     , time-compat >=1.9.4
     , tz >=0.1.3.4
+  if impl(ghc >= 9.2)
+    ghc-options: -Wno-missing-kind-signatures
   default-language: Haskell2010
 
 test-suite tztime-doctest
@@ -158,6 +161,7 @@ test-suite tztime-doctest
       RecursiveDo
       ScopedTypeVariables
       StandaloneDeriving
+      StandaloneKindSignatures
       StrictData
       TemplateHaskell
       TupleSections
@@ -171,6 +175,8 @@ test-suite tztime-doctest
   build-depends:
       base
     , doctest-parallel
+  if impl(ghc >= 9.2)
+    ghc-options: -Wno-missing-kind-signatures
   default-language: Haskell2010
 
 test-suite tztime-test
@@ -230,6 +236,7 @@ test-suite tztime-test
       RecursiveDo
       ScopedTypeVariables
       StandaloneDeriving
+      StandaloneKindSignatures
       StrictData
       TemplateHaskell
       TupleSections
@@ -251,4 +258,6 @@ test-suite tztime-test
     , time
     , time-compat
     , tztime
+  if impl(ghc >= 9.2)
+    ghc-options: -Wno-missing-kind-signatures
   default-language: Haskell2010

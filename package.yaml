@@ -84,6 +84,10 @@ ghc-options:
   - -Wno-monomorphism-restriction
   - -Wno-missed-specialisations
   - -Wno-all-missed-specialisations
+when:
+  - condition: impl(ghc >= 9.2)
+    ghc-options:
+      - -Wno-missing-kind-signatures
 
 default-extensions:
   - AllowAmbiguousTypes
@@ -128,6 +132,7 @@ default-extensions:
   - RecursiveDo
   - ScopedTypeVariables
   - StandaloneDeriving
+  - StandaloneKindSignatures
   - StrictData
   - TemplateHaskell
   - TupleSections
