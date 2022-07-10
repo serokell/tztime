@@ -4,23 +4,40 @@
 -- SPDX-License-Identifier: MPL-2.0
 -->
 
+<!-- TOC ignore:true -->
 # tztime
 
 This package introduces:
 * The `TZTime` data type, a valid and unambiguous point in time in some time zone.
 * Functions for safely manipulating a `TZTime`.
 
-## Examples
+Table of contents:
+<!-- TOC -->
+
+- [Examples](#examples)
+  - [Manipulating a TZTime](#manipulating-a-tztime)
+  - [Encoding / Decoding](#encoding--decoding)
+- [Motivation](#motivation)
+
+<!-- /TOC -->
+
+# Examples
 
 ```hs
 import Control.Arrow ((>>>))
+import Data.Aeson
+import Data.Aeson.QQ.Simple
+import Data.Aeson.TH
 import Data.Function ((&))
 import Data.Time
+import Data.Time.Clock.POSIX
 import Data.Time.Compat
 import Data.Time.TZInfo as TZI
-import Data.Time.TZTime
+import Data.Time.TZTime as TZ
 import Data.Time.TZTime.QQ (tz)
 ```
+
+## Manipulating a `TZTime`
 
 ```hs
 λ> [tz|2022-03-04 10:15:00 +01:00 [Europe/Rome]|] & modifyLocal (
@@ -45,13 +62,47 @@ So 3 hours past 01:00 would actually be 04:30.
 ```hs
 λ> :{
   addTime (hours 3) $
-    fromLocalTime (TZI.fromLabel TZI.Australia__Lord_Howe) $
+    TZ.fromLocalTime (TZI.fromLabel Australia__Lord_Howe) $
       LocalTime (YearMonthDay 2022 10 2) (TimeOfDay 1 0 0)
 :}
 2022-10-02 04:30:00 +11:00 [Australia/Lord_Howe]
 ```
 
-## Motivation
+## Encoding / Decoding
+
+Because there's no standard format for encoding a timezone identifier alongside a date/time/offset, most systems encode these two separately.
+For example, if you're encoding to/decoding from JSON, you'll probably want to split a `TZTime` into
+a `POSIXTime`/`UTCTime`/`ZonedTime` and a `TZIdentifier`, and encode them as separate fields.
+
+```hs
+data Message = MkMessage { sender :: Text, time :: ZonedTime, timezone :: TZIdentifier }
+deriveFromJSON defaultOptions ''Message
+```
+
+To re-build a `TZTime`, you have to first fetch the time zone rules `TZInfo` for the given `TZIdentifier`
+from the system's time zone database using `loadFromSystem` (or from the library's embedded database using `fromIdentifier`).
+
+```hs
+λ> json = encode [aesonQQ| { "sender": "john doe", "time": "2022-03-04T10:15:00+01:00", "timezone": "Europe/Rome" }|]
+
+λ> Right message = eitherDecode' @Message json
+λ> tzInfo <- TZI.loadFromSystem (timezone message)
+λ> TZ.fromZonedTime tzInfo (time message)
+2022-03-04 10:15:00 +01:00 [Europe/Rome]
+```
+
+If the encoded data is not meant to be read by other systems (and thus interoperability is not a concern),
+then using the `Show`/`Read` instances to encode/decode as a single field is also an option.
+
+```hs
+λ> show [tz|2022-03-04 10:15:00 +01:00 [Europe/Rome]|]
+"2022-03-04 10:15:00 +01:00 [Europe/Rome]"
+
+λ> read @TZTime "2022-03-04 10:15:00 +01:00 [Europe/Rome]"
+2022-03-04 10:15:00 +01:00 [Europe/Rome]
+```
+
+# Motivation
 
 Note: We'll use the packages `time`, `time-compat` and `tz` for the examples below.
 
