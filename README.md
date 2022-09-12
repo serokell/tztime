@@ -7,6 +7,10 @@
 <!-- TOC ignore:true -->
 # tztime
 
+[![GitHub CI](https://github.com/serokell/tztime/workflows/CI/badge.svg)](https://github.com/serokell/tztime/actions)
+[![Hackage](https://img.shields.io/hackage/v/tztime.svg)](https://hackage.haskell.org/package/tztime)
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
+
 This package introduces:
 * The `TZTime` data type, a valid and unambiguous point in time in some time zone.
 * Functions for safely manipulating a `TZTime`.
