@@ -19,28 +19,38 @@ jobs:
     name: Verify cross references
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: serokell/xrefcheck-action@v1
       with:
-        xrefcheck-version: 0.2
+        xrefcheck-version: 0.2.2
 
   reuse:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: REUSE Compliance Check
       uses: fsfe/reuse-action@v1
 
   hlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: tfausak/hlint-action@v1
+    - uses: actions/checkout@v3
+
+    - name: 'Set up HLint'
+      uses: haskell/actions/hlint-setup@v2
+      with:
+        version: '3.1.6'
+
+    - name: 'Run HLint'
+      uses: haskell/actions/hlint-run@v2
+      with:
+        path: .
+        fail-on: status
 
   stylish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache binaries
         id: cache-stylish
         uses: actions/cache@v3
@@ -66,7 +76,7 @@ jobs:
     name: Find Trailing Whitespace
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: harupy/find-trailing-whitespace@v1.0
 
   cabal:
@@ -77,7 +87,13 @@ jobs:
         os: [ubuntu-latest, macOS-latest, windows-latest]
         cabal: ["3.6"]
         # If you update this list of supported compiler versions,
-        # make sure to update the `tested-with` section of `package.yaml`.
+        # make sure to:
+        #   * Update the `tested-with` section of `package.yaml`.
+        #   * Update the list of required checks in the repo's settings.
+        #     * Go to: https://github.com/serokell/tztime/settings/branches
+        #     * Edit the "main" branch
+        #     * Scroll to "Branch protection rules" > "Require status checks to pass before merging"
+        #     * Remove versions we're not testing anymore / Add versions we're now testing.
         ghc:
           - "8.10.7"
           - "9.0.2"
@@ -93,9 +109,9 @@ jobs:
             ghc: "9.0.2"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: haskell/actions/setup@v1.2
+    - uses: haskell/actions/setup@v2
       id: setup-haskell-cabal
       name: Setup Haskell
       with:
@@ -136,13 +152,14 @@ jobs:
             stackyaml: stack.yaml
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: haskell/actions/setup@v1.2
+    - uses: haskell/actions/setup@v2
       name: Setup Haskell Stack
       with:
         ghc-version: ${{ matrix.ghc }}
         stack-version: ${{ matrix.stack }}
+        enable-stack: true
 
     - uses: actions/cache@v3
       name: Cache ~/.stack
@@ -167,9 +184,13 @@ jobs:
     # Once hpack releases more recent binaries (see: https://github.com/sol/hpack/issues/514),
     # We should change this step to download the binaries for stack2cabal 1.0.13 and hpack >=0.34.4,
     # and then run `./hpack && ./stack2cabal --no-run-hpack`
+
+    # When this action fails with diffs involving hpack versions,
+    # try changing hpack version in snapshot-stack2cabal.yaml
     - name: Validate cabal files
       # Run this step only against the stack file we use for development.
       if: matrix.stackyaml == 'stack.yaml'
       run: |
+        stack --version;
         stack install stack2cabal --resolver snapshot-stack2cabal.yaml --system-ghc
         ./scripts/validate-cabal-files.sh
