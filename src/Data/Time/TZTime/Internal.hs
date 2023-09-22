@@ -31,6 +31,7 @@ import Data.Time.TZInfo (TZIdentifier, TZInfo(..), fromIdentifier)
 import Data.Time.Zones (LocalToUTCResult(..))
 import Data.Time.Zones qualified as TZ
 import GHC.Generics (Generic)
+import GHC.Records (HasField(..))
 import GHC.Stack (HasCallStack)
 import Text.ParserCombinators.ReadP (ReadP)
 import Text.ParserCombinators.ReadP qualified as P
@@ -67,6 +68,38 @@ instance Show TZTime where
     where
       tzIdent = T.unpack $ tziIdentifier tzi
 
+----------------------------------------------------------------------------
+-- TZTime fields
+----------------------------------------------------------------------------
+{-
+Note: We do not want users to be able to unsafely modify `TZTime`'s fields.
+
+For that reason, the `Data.Time.TZTime` module does
+not export its fields`; it exports functions like `tzTimeLocalTime` instead.
+
+We also export `HasField` instances for compatibility with `OverloadedRecordDot`.
+
+>>> import Data.Time.TZInfo as TZInfo
+>>> tz = fromPOSIXTime (TZInfo.fromLabel TZInfo.Europe__Rome) 0
+>>>
+>>> :set -XOverloadedRecordDot
+>>> tz.tzTimeLocalTime
+1970-01-01 01:00:00
+
+## WARNING! ##
+
+According to <https://gitlab.haskell.org/ghc/ghc/-/wikis/records/overloaded-record-fields>,
+there are plans to add `setField` to the `HasField` class, which could then
+be used to implement `OverloadedRecordUpdate`.
+This conflicts with our intent: we only want to support `OverloadedRecordDot`,
+but NOT `OverloadedRecordUpdate`!
+
+There are also proposals to split the `HasField` class in two.
+
+If `setField` is indeed added to the `HasField` class, we'll have to drop these instances.
+If the `HasField` class is split in two, that's not a problem.
+-}
+
 -- | The local time of this `TZTime`.
 tzTimeLocalTime :: TZTime -> LocalTime
 tzTimeLocalTime = tztLocalTime
@@ -78,6 +111,10 @@ tzTimeTZInfo = tztTZInfo
 -- | The offset observed in this time zone at this moment in time.
 tzTimeOffset :: TZTime -> TimeZone
 tzTimeOffset = tztOffset
+
+instance HasField "tzTimeLocalTime" TZTime LocalTime where getField = tzTimeLocalTime
+instance HasField "tzTimeTZInfo" TZTime TZInfo where getField = tzTimeTZInfo
+instance HasField "tzTimeOffset" TZTime TimeZone where getField = tzTimeOffset
 
 ----------------------------------------------------------------------------
 -- Constructors
