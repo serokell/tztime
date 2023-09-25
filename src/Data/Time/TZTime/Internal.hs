@@ -112,8 +112,11 @@ tzTimeTZInfo = tztTZInfo
 tzTimeOffset :: TZTime -> TimeZone
 tzTimeOffset = tztOffset
 
+-- | @since 0.1.1.0
 instance HasField "tzTimeLocalTime" TZTime LocalTime where getField = tzTimeLocalTime
+-- | @since 0.1.1.0
 instance HasField "tzTimeTZInfo" TZTime TZInfo where getField = tzTimeTZInfo
+-- | @since 0.1.1.0
 instance HasField "tzTimeOffset" TZTime TimeZone where getField = tzTimeOffset
 
 ----------------------------------------------------------------------------

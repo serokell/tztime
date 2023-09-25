@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 name:                tztime
-version:             0.1.0.0
+version:             0.1.1.0
 github:              serokell/tztime
 license:             MPL-2.0
 license-file:        LICENSE
