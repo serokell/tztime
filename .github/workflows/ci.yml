@@ -19,7 +19,7 @@ jobs:
     name: Verify cross references
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: serokell/xrefcheck-action@v1
       with:
         xrefcheck-version: 0.2.2
@@ -27,14 +27,14 @@ jobs:
   reuse:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: REUSE Compliance Check
       uses: fsfe/reuse-action@v1
 
   hlint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: 'Set up HLint'
       uses: haskell/actions/hlint-setup@v2
@@ -50,7 +50,7 @@ jobs:
   stylish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Cache binaries
         id: cache-stylish
         uses: actions/cache@v3
@@ -76,7 +76,7 @@ jobs:
     name: Find Trailing Whitespace
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: harupy/find-trailing-whitespace@v1.0
 
   cabal:
@@ -114,7 +114,7 @@ jobs:
             ghc: "9.2.8"
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - uses: haskell/actions/setup@v2
       id: setup-haskell-cabal
@@ -156,7 +156,7 @@ jobs:
             stackyaml: stack.yaml
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - uses: haskell/actions/setup@v2
       name: Setup Haskell Stack
